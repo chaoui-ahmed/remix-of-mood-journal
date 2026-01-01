@@ -10,7 +10,7 @@ interface EntryCardProps {
     content: string;
     mood_score: number;
     hashtags: string[];
-    created_at: string;
+    date: string; // Remplacement de created_at par date
   };
   onClick?: () => void;
 }
@@ -24,10 +24,10 @@ const moodClasses: Record<number, string> = {
 };
 
 const moodEmojis: Record<number, string> = {
-  1: "😢",
-  2: "😕",
+  1: "😫",
+  2: "😞",
   3: "😐",
-  4: "😊",
+  4: "😌",
   5: "🤩",
 };
 
@@ -47,7 +47,8 @@ export function EntryCard({ entry, onClick }: EntryCardProps) {
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="w-4 h-4" />
-          <span>{format(new Date(entry.created_at), "d MMMM yyyy", { locale: fr })}</span>
+          {/* Correction ici : utilisation de entry.date */}
+          <span>{format(new Date(entry.date), "d MMMM yyyy", { locale: fr })}</span>
         </div>
         <span className="text-2xl">{moodEmojis[entry.mood_score]}</span>
       </div>
