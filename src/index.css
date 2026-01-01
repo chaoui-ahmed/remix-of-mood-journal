@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Neo-Brutalism Design System with Soft Pastel Palette */
+
+@layer base {
+  :root {
+    /* Core Colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 5%;
+
+    /* Primary - Deep charcoal for contrast */
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft gray */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 0%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
+
+    --radius: 0px;
+
+    /* Mood Colors - Soft Pastel Palette */
+    --mood-1: 0 93% 88%;      /* #FECACA - Rouge pastel */
+    --mood-2: 27 98% 83%;     /* #FED7AA - Orange pastel */
+    --mood-3: 53 98% 77%;     /* #FEF08A - Jaune pastel */
+    --mood-4: 142 77% 85%;    /* #BBF7D0 - Vert pastel */
+    --mood-5: 270 95% 92%;    /* #E9D5FF - Violet pastel */
+
+    /* Neo-brutalist shadows */
+    --shadow-brutal: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+    --shadow-brutal-sm: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+    --shadow-brutal-lg: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+    --shadow-brutal-hover: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 0 0% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 0%;
+    --sidebar-ring: 0 0% 0%;
+  }
+
+  .dark {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 10%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 100%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 100%;
+
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 100%;
+    --sidebar-ring: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    @apply font-bold tracking-tight;
+  }
+
+  code, pre {
+    font-family: 'Space Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Neo-Brutal Card Style */
+  .card-brutal {
+    @apply bg-card border border-border;
+    box-shadow: var(--shadow-brutal);
+    transition: all 0.15s ease;
+  }
+
+  .card-brutal:hover {
+    box-shadow: var(--shadow-brutal-hover);
+    transform: translate(-2px, -2px);
+  }
+
+  /* Pixel Grid Cell */
+  .pixel-cell {
+    @apply border border-border cursor-pointer transition-all duration-150;
+    box-shadow: var(--shadow-brutal-sm);
+  }
+
+  .pixel-cell:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-brutal);
+  }
+
+  /* Mood Color Classes */
+  .mood-1 { background-color: hsl(var(--mood-1)); }
+  .mood-2 { background-color: hsl(var(--mood-2)); }
+  .mood-3 { background-color: hsl(var(--mood-3)); }
+  .mood-4 { background-color: hsl(var(--mood-4)); }
+  .mood-5 { background-color: hsl(var(--mood-5)); }
+
+  /* Neo-Brutal Button */
+  .btn-brutal {
+    @apply px-4 py-2 font-semibold border border-border bg-card text-foreground;
+    box-shadow: var(--shadow-brutal);
+    transition: all 0.15s ease;
+  }
+
+  .btn-brutal:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-brutal-hover);
+  }
+
+  .btn-brutal:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  /* Neo-Brutal Input */
+  .input-brutal {
+    @apply w-full px-4 py-3 border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none;
+    box-shadow: var(--shadow-brutal-sm);
+  }
+
+  .input-brutal:focus {
+    box-shadow: var(--shadow-brutal);
+  }
+
+  /* Page transitions */
+  .page-enter {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .page-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .page-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .page-exit-active {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@layer utilities {
+  .shadow-brutal {
+    box-shadow: var(--shadow-brutal);
+  }
+
+  .shadow-brutal-sm {
+    box-shadow: var(--shadow-brutal-sm);
+  }
+
+  .shadow-brutal-lg {
+    box-shadow: var(--shadow-brutal-lg);
+  }
+
+  .shadow-brutal-hover {
+    box-shadow: var(--shadow-brutal-hover);
+  }
+}
