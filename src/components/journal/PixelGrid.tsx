@@ -14,16 +14,17 @@ import { fr } from "date-fns/locale";
 
 interface Entry {
   id: string;
-  date: string;
+  date: string; // ✅ On utilise bien 'date'
   mood_score: number;
 }
 
 interface PixelGridProps {
   entries: Entry[];
-  currentDate: Date; // ✅ On ajoute cette prop
+  currentDate: Date; // ✅ C'est cette variable qui manquait ou était mal nommée
   onDayClick: (date: Date, entry?: Entry) => void;
 }
 
+// Couleurs pastels
 const moodClasses: Record<number, string> = {
   1: "bg-mood-1",
   2: "bg-mood-2",
@@ -35,11 +36,13 @@ const moodClasses: Record<number, string> = {
 const weekDays = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
 export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) {
-  // 1. Calcul des jours basé sur currentDate (le mois choisi)
+  // 1. Calcul des jours du mois reçu en prop (currentDate)
   const days = useMemo(() => {
+    // Sécurité : si currentDate est invalide, on prend aujourd'hui
+    const baseDate = isValid(currentDate) ? currentDate : new Date();
     return eachDayOfInterval({
-      start: startOfMonth(currentDate), // ✅ Utilise currentDate au lieu de new Date()
-      end: endOfMonth(currentDate),
+      start: startOfMonth(baseDate),
+      end: endOfMonth(baseDate),
     });
   }, [currentDate]);
 
@@ -58,9 +61,8 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
 
   return (
     <div className="w-full">
-      {/* J'ai retiré le titre du mois ici car on l'a mis dans Index.tsx avec les flèches */}
-      
       <div className="grid grid-cols-7 gap-2 sm:gap-3">
+        {/* Jours de la semaine */}
         {weekDays.map(day => (
           <div key={day} className="text-[10px] font-bold text-center uppercase text-muted-foreground mb-2">
             {day}
@@ -68,14 +70,15 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
         ))}
 
         {/* Espaces vides pour le début du mois */}
-        {Array.from({ length: getDay(days[0]) }).map((_, i) => (
+        {days.length > 0 && Array.from({ length: getDay(days[0]) }).map((_, i) => (
           <div key={`empty-${i}`} className="aspect-square" />
         ))}
 
+        {/* Les Pixels */}
         {days.map((day) => {
           const dateKey = format(day, "yyyy-MM-dd");
           const entry = entryMap.get(dateKey);
-          const isToday = isSameDay(day, new Date()); // Reste vrai "aujourd'hui" même si on regarde un autre mois
+          const isToday = isSameDay(day, new Date());
           const score = entry ? Number(entry.mood_score) : null;
 
           return (
@@ -87,7 +90,7 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
               className={cn(
                 "aspect-square rounded-xl transition-all duration-300 relative flex items-center justify-center",
                 score ? moodClasses[score] : "bg-white/40 border-2 border-dashed border-gray-200/50 hover:border-gray-300",
-                isToday && !entry && "ring-2 ring-pink-400 ring-offset-2 ring-offset-white/0", // Anneau rose si c'est aujourd'hui
+                isToday && !entry && "ring-2 ring-pink-400 ring-offset-2 ring-offset-white/0",
                 entry && "shadow-sm"
               )}
             >

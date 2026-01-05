@@ -1,30 +1,40 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { format, addMonths, subMonths } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { PixelGrid } from "@/components/journal/PixelGrid";
+import { PixelGrid } from "@/components/journal/PixelGrid"; // Assurez-vous que l'import est bon
 import { EntryCard } from "@/components/journal/EntryCard";
 import { useEntries } from "@/hooks/useEntries";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 export default function Index() {
-  // On récupère toutes les entrées, plus besoin de filtrer par année ici car PixelGrid gère le mois
-  const { data: entries = [], isLoading } = useEntries();
+  // État du mois affiché
+  const [currentDate, setCurrentDate] = useState(new Date());
+  
+  // On récupère les données (on peut filtrer par année si le hook le permet, sinon on prend tout)
+  const { data: entries = [], isLoading } = useEntries(); 
   const navigate = useNavigate();
 
-  const recentEntries = entries.slice(0, 3);
+  // Navigation mois précédent / suivant
+  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+  const isFuture = addMonths(currentDate, 1) > new Date();
 
+  // Clic sur un jour
   const handleDayClick = (date: Date, entry?: { id: string }) => {
     if (entry) {
       navigate(`/entry/${entry.id}`);
     } else {
-      // On envoie la date sélectionnée à la page de création
       navigate(`/entry?date=${format(date, "yyyy-MM-dd")}`);
     }
   };
 
+  const recentEntries = entries.slice(0, 3);
+
   return (
-    // ❌ "bg-background" retiré
     <div className="min-h-screen">
       <Navigation />
       <PageTransition>
@@ -38,12 +48,41 @@ export default function Index() {
             </p>
           </div>
           
-          {isLoading ? (
-            <div className="h-32 flex items-center justify-center text-muted-foreground">Chargement...</div>
-          ) : (
-            // On a retiré la prop 'year' car PixelGrid gère le mois actuel maintenant
-            <PixelGrid entries={entries} onDayClick={handleDayClick} />
-          )}
+          <div className="bg-card/50 backdrop-blur-sm border border-white/20 shadow-brutal p-6 mb-8 rounded-3xl">
+            {/* Header du Calendrier avec Flèches */}
+            <div className="flex items-center justify-between mb-6">
+              <Button variant="ghost" size="icon" onClick={prevMonth} className="hover:bg-white/50 rounded-full">
+                <ChevronLeft className="w-6 h-6 text-gray-700" />
+              </Button>
+              
+              <span className="text-xl font-black uppercase tracking-widest text-gray-800">
+                {format(currentDate, "MMMM yyyy", { locale: fr })}
+              </span>
+              
+              <Button variant="ghost" size="icon" onClick={nextMonth} disabled={isFuture} className="hover:bg-white/50 rounded-full disabled:opacity-30">
+                <ChevronRight className="w-6 h-6 text-gray-700" />
+              </Button>
+            </div>
+
+            {isLoading ? (
+              <div className="h-64 flex items-center justify-center text-muted-foreground">Chargement...</div>
+            ) : (
+              // ✅ CONNEXION CRITIQUE : On passe 'currentDate' ici
+              <PixelGrid 
+                entries={entries} 
+                currentDate={currentDate} 
+                onDayClick={handleDayClick} 
+              />
+            )}
+            
+            <div className="flex justify-center gap-3 mt-8 flex-wrap">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div key={s} className="flex items-center gap-1.5">
+                  <div className={`w-3 h-3 rounded-full bg-mood-${s}`} />
+                </div>
+              ))}
+            </div>
+          </div>
 
           {recentEntries.length > 0 && (
             <div className="mt-12">
