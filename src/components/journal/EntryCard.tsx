@@ -10,7 +10,7 @@ interface EntryCardProps {
     content: string;
     mood_score: number;
     hashtags: string[];
-    date: string; 
+    created_at: string; 
   };
   onClick?: () => void;
 }
@@ -54,8 +54,8 @@ export function EntryCard({ entry, onClick }: EntryCardProps) {
           <Calendar className="w-4 h-4" />
           <span>
             {isDateValid 
-              ? format(dateObj, "d MMMM yyyy", { locale: fr }) 
-              : "Date invalide"} 
+              ? format(new Date(entry.created_at), "d MMMM yyyy", { locale: fr }) 
+              : "Date inconnue"} 
           </span>
         </div>
         <span className="text-2xl">{moodEmojis[entry.mood_score] || "❓"}</span>

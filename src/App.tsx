@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Entry from "./pages/Entry";
+import Trends from "./pages/Trends"; // ✅ Ajoutez cet import
+import Settings from "./pages/Settings"; // ✅ Ajoutez cet import
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,11 @@ const App = () => (
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/entry" element={<ProtectedRoute><Entry /></ProtectedRoute>} />
         <Route path="/entry/:id" element={<ProtectedRoute><Entry /></ProtectedRoute>} />
+        
+        {/* ✅ AJOUTEZ CES DEUX LIGNES ICI */}
+        <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
