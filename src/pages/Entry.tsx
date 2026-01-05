@@ -65,7 +65,7 @@ export default function Entry() {
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full hover:bg-white/50">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500">
+            <h1 className="text-4xl font-extrabold text-orange-500 mb-2">
               {id ? "Modifier le souvenir" : "Nouveau Pixel"}
             </h1>
           </div>

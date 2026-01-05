@@ -40,7 +40,7 @@ export default function Index() {
       <PageTransition>
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8 text-center md:text-left">
-            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-extrabold text-orange-500 mb-2">
               Mes Pixels ✨
             </h1>
             <p className="text-muted-foreground font-medium italic">
@@ -87,7 +87,7 @@ export default function Index() {
           {recentEntries.length > 0 && (
             <div className="mt-12">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <span>📝</span> Derniers souvenirs
+                <span>⏳</span> Récents
               </h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {recentEntries.map((entry) => (
