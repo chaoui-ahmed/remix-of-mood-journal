@@ -48,11 +48,10 @@ export function PixelGrid({ entries, onDayClick }: PixelGridProps) {
   const entryMap = useMemo(() => {
     const map = new Map<string, Entry>();
     entries.forEach((entry) => {
-      if (!entry.created_at) return;
-      const d = new Date(entry.created_at);
+      if (!entry.date) return; // ✅ Utilisation de .date au lieu de .created_at
+      const d = new Date(entry.date);
       if (isValid(d)) {
-        const key = format(d, "yyyy-MM-dd");
-        map.set(key, entry);
+        map.set(format(d, "yyyy-MM-dd"), entry);
       }
     });
     return map;
