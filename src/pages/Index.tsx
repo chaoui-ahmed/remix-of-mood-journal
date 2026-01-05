@@ -44,7 +44,7 @@ export default function Index() {
               Mes Pixels ✨
             </h1>
             <p className="text-muted-foreground font-medium italic">
-               Chaque carré est un souvenir. Remplis-les de couleurs ! 🎨<p className="text-muted-foreground mb-8">hihiiii</p>
+               Chaque carré est un souvenir. Remplis-les de couleurs ! 🎨<p className="text-muted-foreground mb-8">COUCOUUUU</p>
             </p>
           </div>
           
