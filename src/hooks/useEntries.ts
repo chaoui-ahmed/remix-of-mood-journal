@@ -11,7 +11,6 @@ export function useEntries(year?: number) {
     queryKey: ["entries", year],
     queryFn: async () => {
       // ✅ CHANGEMENT : On trie par 'updated_at' (dernière modification)
-      // Cela permet à la section "Récents" d'afficher ce que vous venez d'éditer
       let query = supabase
         .from("entries")
         .select("*")
@@ -55,7 +54,6 @@ export function useCreateEntry() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Non connecté");
 
-      // Utilisation de upsert pour gérer création OU mise à jour
       const { data, error } = await supabase
         .from("entries")
         .upsert(
@@ -99,14 +97,9 @@ export function useUpdateEntry() {
       if (error) throw error;
       return data;
     },
-    // Update the onSuccess callback to receive 'variables' (which contains the id)
     onSuccess: (_, variables) => {
-      // 1. Refresh the list (existing behavior)
       queryClient.invalidateQueries({ queryKey: ["entries"] });
-      
-      // 2. ADD THIS: Refresh the specific entry cache so the edit page gets new data
       queryClient.invalidateQueries({ queryKey: ["entry", variables.id] });
-      
       toast({ title: "Succès", description: "Modification enregistrée !" });
     },
     onError: (error: any) => {
@@ -114,6 +107,36 @@ export function useUpdateEntry() {
       toast({ 
         title: "Erreur", 
         description: error.message || "Impossible de modifier le pixel.", 
+        variant: "destructive" 
+      });
+    },
+  });
+}
+
+// ✅ NOUVEAU HOOK : Suppression
+export function useDeleteEntry() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("entries")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      // Rafraîchir la liste des entrées pour faire disparaître celle supprimée
+      queryClient.invalidateQueries({ queryKey: ["entries"] });
+      toast({ title: "Supprimé", description: "Le pixel a été effacé définitivement." });
+    },
+    onError: (error: any) => {
+      console.error("Erreur delete:", error);
+      toast({ 
+        title: "Erreur", 
+        description: error.message || "Impossible de supprimer le pixel.", 
         variant: "destructive" 
       });
     },

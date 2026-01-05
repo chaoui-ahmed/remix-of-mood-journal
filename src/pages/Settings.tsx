@@ -1,10 +1,28 @@
 import { useState } from "react";
-import { Download, Palette } from "lucide-react";
+import { Download, Palette, Trash2 } from "lucide-react"; // Ajout de Trash2
 import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"; // Ajout des composants Select
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Ajout des composants AlertDialog
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
-import { useEntries } from "@/hooks/useEntries";
+import { useEntries, useDeleteEntry } from "@/hooks/useEntries"; // Ajout de useDeleteEntry
 import { useToast } from "@/hooks/use-toast";
 
 const bgColors = [
@@ -19,10 +37,12 @@ export default function Settings() {
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
   const { data: entries = [] } = useEntries();
+  const deleteEntry = useDeleteEntry(); // Hook de suppression
   const { toast } = useToast();
+  
+  const [selectedEntryId, setSelectedEntryId] = useState<string>("");
 
   const handleColorChange = async (color: string) => {
-    // Optimistic UI : On peut changer la couleur locale instantanément pour un effet rapide
     document.body.style.backgroundColor = color;
     await updateProfile.mutateAsync({ background_color: color });
     toast({ title: "Couleur mise à jour", description: `Fond changé en ${color}` });
@@ -40,8 +60,22 @@ export default function Settings() {
     toast({ title: "Export réussi", description: `${entries.length} entrées exportées.` });
   };
 
+  const handleDelete = async () => {
+    if (!selectedEntryId) return;
+    await deleteEntry.mutateAsync(selectedEntryId);
+    setSelectedEntryId(""); // Réinitialiser la sélection
+  };
+
+  // Formater la date pour l'affichage (ex: 12/05/2024)
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  };
+
   return (
-    // ❌ J'ai retiré "bg-background" ici pour laisser voir la couleur du body
     <div className="min-h-screen"> 
       <Navigation />
       <PageTransition>
@@ -84,6 +118,68 @@ export default function Settings() {
                 Exporter ({entries.length} entrées)
               </Button>
             </div>
+
+            {/* Carte Suppression (Zone de Danger) */}
+            <div className="bg-card/80 backdrop-blur-sm border border-destructive/50 shadow-brutal p-6">
+              <div className="flex items-center gap-3 mb-4 text-destructive">
+                <Trash2 className="w-5 h-5" />
+                <h2 className="text-xl font-bold">Zone de danger</h2>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                Supprimer définitivement un pixel.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div className="w-full sm:w-64">
+                  <Select value={selectedEntryId} onValueChange={setSelectedEntryId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir une date..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {entries.map((entry) => (
+                        <SelectItem key={entry.id} value={entry.id}>
+                          {formatDate(entry.date)}
+                        </SelectItem>
+                      ))}
+                      {entries.length === 0 && (
+                        <SelectItem value="none" disabled>Aucune entrée disponible</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      disabled={!selectedEntryId}
+                      className="w-full sm:w-auto"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Supprimer
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Es-tu absolument sûr 👀?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cela supprimera définitivement ce souvenir.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDelete}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Supprimer définitivement
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+
           </div>
         </main>
       </PageTransition>
