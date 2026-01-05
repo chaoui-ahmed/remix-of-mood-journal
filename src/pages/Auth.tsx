@@ -52,7 +52,7 @@ export default function Auth() {
             <div>
               <h1 className="text-2xl font-bold">Journal</h1>
               <p className="text-sm text-muted-foreground">
-                {isLogin ? "Bon retour !" : "Crée ton compte"}
+                {isLogin ? "COUCOUUUUUUU😈" : "Crée ton compte"}
               </p>
             </div>
           </div>

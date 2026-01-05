@@ -7,11 +7,11 @@ interface MoodSelectorProps {
 }
 
 const moods = [
-  { score: 1, label: "Terrible", emoji: "😢", color: "bg-mood-1 hover:bg-mood-1/80" },
-  { score: 2, label: "Mauvais", emoji: "😕", color: "bg-mood-2 hover:bg-mood-2/80" },
+  { score: 1, label: "Terrible", emoji: "⛈️", color: "bg-mood-1 hover:bg-mood-1/80" },
+  { score: 2, label: "Mauvais", emoji: "☔️", color: "bg-mood-2 hover:bg-mood-2/80" },
   { score: 3, label: "Neutre", emoji: "😐", color: "bg-mood-3 hover:bg-mood-3/80" },
   { score: 4, label: "Bien", emoji: "😊", color: "bg-mood-4 hover:bg-mood-4/80" },
-  { score: 5, label: "Excellent", emoji: "🤩", color: "bg-mood-5 hover:bg-mood-5/80" },
+  { score: 5, label: "Excellent", emoji: "😁", color: "bg-mood-5 hover:bg-mood-5/80" },
 ];
 
 export function MoodSelector({ value, onChange }: MoodSelectorProps) {

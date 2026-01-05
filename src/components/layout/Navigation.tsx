@@ -6,9 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
-  { path: "/", icon: Grid3X3, label: "Grille" },
+  { path: "/", icon: Grid3X3, label: "Calendrier" },
   { path: "/entry", icon: PenLine, label: "Écrire" },
-  { path: "/trends", icon: TrendingUp, label: "Tendances" },
+  { path: "/trends", icon: TrendingUp, label: "Analytics" },
   { path: "/settings", icon: Settings, label: "Paramètres" },
 ];
 
@@ -36,9 +36,9 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-mood-5 border border-border shadow-brutal-sm flex items-center justify-center">
-              <span className="font-bold text-lg">J</span>
+              <span className="font-bold text-lg">P</span>
             </div>
-            <span className="font-bold text-xl hidden sm:block">Journal</span>
+            <span className="font-bold text-xl hidden sm:block">Pixels</span>
           </Link>
 
           <div className="flex items-center gap-1 sm:gap-2">
