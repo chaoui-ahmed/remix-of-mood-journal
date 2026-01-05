@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom"; // ✅ useSearchParams ajouté
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Save, Sparkles } from "lucide-react";
 import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -10,7 +10,7 @@ import { useEntry, useCreateEntry, useUpdateEntry } from "@/hooks/useEntries";
 
 export default function Entry() {
   const { id } = useParams();
-  const [searchParams] = useSearchParams(); // ✅ Pour lire ?date=2024-01-01
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
   const { data: existingEntry, isLoading } = useEntry(id);
@@ -21,7 +21,6 @@ export default function Entry() {
   const [moodScore, setMoodScore] = useState(3);
   const [hashtags, setHashtags] = useState<string[]>([]);
   
-  // ✅ On prend la date de l'URL ou aujourd'hui par défaut
   const [date, setDate] = useState(
     searchParams.get("date") || new Date().toISOString().split('T')[0]
   );
@@ -53,38 +52,37 @@ export default function Entry() {
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center">Chargement...</div>;
+  if (isLoading) return <div className="p-8 text-center font-bold">Chargement...</div>;
 
   return (
-    // ❌ "bg-background" retiré pour voir la couleur perso
     <div className="min-h-screen">
       <Navigation />
       <PageTransition>
         <main className="container mx-auto px-4 py-8 max-w-2xl">
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full hover:bg-white/50">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="border border-black shadow-brutal-sm hover:translate-x-[-2px] hover:translate-y-[-2px]">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-4xl font-extrabold text-orange-500 mb-2">
+            <h1 className="text-4xl font-black text-orange-500 uppercase tracking-tighter">
               {id ? "Modifier le souvenir" : "Nouveau Pixel"}
             </h1>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="text-center">
-              <span className="inline-block px-4 py-1 rounded-full bg-white/50 text-sm font-medium border border-white/60">
+              <span className="inline-block px-4 py-1 border-2 border-black font-bold shadow-brutal-sm bg-white">
                 📅 {date}
               </span>
             </div>
 
             {/* Carte Humeur */}
-            <div className="bg-white/60 backdrop-blur-md border border-white/50 p-6 rounded-3xl shadow-sm">
+            <div className="card-brutal p-6">
               <MoodSelector value={moodScore} onChange={setMoodScore} />
             </div>
 
             {/* Zone de texte */}
-            <div className="bg-white/60 backdrop-blur-md border border-white/50 p-6 rounded-3xl shadow-sm">
-              <label className="block text-sm font-bold text-muted-foreground mb-3 flex items-center gap-2">
+            <div className="card-brutal p-6">
+              <label className="block text-sm font-black uppercase mb-3 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-yellow-500" />
                 Raconte-moi ta journée...
               </label>
@@ -93,24 +91,23 @@ export default function Entry() {
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
                 placeholder="Aujourd'hui, j'ai..."
-                className="w-full bg-transparent border-none p-0 resize-none focus:outline-none text-lg text-gray-700 placeholder:text-gray-400/70"
+                className="w-full bg-transparent border-2 border-black p-4 focus:outline-none text-lg font-medium shadow-brutal-sm placeholder:text-gray-400"
                 required
               />
             </div>
 
             {/* Hashtags */}
-            <div className="bg-white/60 backdrop-blur-md border border-white/50 p-6 rounded-3xl shadow-sm">
+            <div className="card-brutal p-6">
               <HashtagInput value={hashtags} onChange={setHashtags} />
             </div>
 
-            <Button 
+            <button 
               type="submit" 
-              className="w-full rounded-full bg-black hover:bg-gray-800 text-white font-bold py-6 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1" 
+              className="btn-brutal w-full py-4 text-xl font-black uppercase bg-black text-white" 
               disabled={createEntry.isPending || updateEntry.isPending}
             >
-              <Save className="w-4 h-4 mr-2" />
               Enregistrer mon pixel
-            </Button>
+            </button>
           </form>
         </main>
       </PageTransition>
