@@ -35,10 +35,13 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-mood-5 border border-border shadow-brutal-sm flex items-center justify-center">
-              <span className="font-bold text-lg">P</span>
-            </div>
-            <span className="font-bold text-xl hidden sm:block">Pixels</span>
+            {/* Remplacement du bloc P par ton image */}
+            <img 
+              src="/favicon.png" 
+              alt="Logo" 
+              className="w-8 h-8 object-contain" 
+            />
+            <span className="font-bold text-xl hidden sm:block tracking-tighter">OUR PIXELS</span>
           </Link>
 
           <div className="flex items-center gap-1 sm:gap-2">
