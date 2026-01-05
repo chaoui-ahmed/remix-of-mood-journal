@@ -3,10 +3,11 @@ import subprocess
 
 # --- CONFIGURATION ---
 # Le chemin vers le fichier à modifier
-TARGET_FILE = "/Users/ahmaide/Desktop/remix-of-mood-journal/src/pages"
+# ✅ CORRECT
+TARGET_FILE = "src/pages/Index.tsx"
 # La partie fixe de la ligne qu'on cherche pour être sûr de remplacer la bonne
 # (Assure-toi que cette phrase est UNIQUE dans le fichier)
-SEARCH_PATTERN = "Interdit de mettre autre chose que du 🟪 si on se voit"
+SEARCH_PATTERN = "✨✨✨✨✨"
 # ---------------------
 
 def update_file(new_text):
@@ -47,8 +48,8 @@ def git_push(commit_message):
         subprocess.run(["git", "commit", "-m", commit_message], check=True)
         print(f"✅ git commit -m '{commit_message}'")
         # Décommente la ligne suivante pour pousser vraiment sur GitHub
-        # subprocess.run(["git", "push", "origin", "main"], check=True)
-        # print("✅ git push (Simulé - décommente dans le script pour activer)")
+        subprocess.run(["git", "push", "origin", "main"], check=True)
+        print("✅ git push (Simulé - décommente dans le script pour activer)")
     except subprocess.CalledProcessError as e:
         print(f"❌ Erreur Git : {e}")
 

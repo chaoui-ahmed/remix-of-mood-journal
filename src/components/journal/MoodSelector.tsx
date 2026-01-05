@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import confetti from "canvas-confetti"; // Import de la librairie de confettis
 
 interface MoodSelectorProps {
   value: number;
@@ -15,6 +16,49 @@ const moods = [
 ];
 
 export function MoodSelector({ value, onChange }: MoodSelectorProps) {
+  
+  const handleMoodChange = (score: number) => {
+    onChange(score);
+
+    // Si le score est 5 (Excellent), on déclenche l'explosion d'étoiles
+    if (score === 5) {
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval: any = setInterval(function() {
+        const timeLeft = 500; // Durée de l'effet
+        const particleCount = 50;
+
+        // Configuration de l'explosion d'étoiles
+        confetti({
+          particleCount,
+          startVelocity: 30,
+          spread: 360,
+          origin: {
+            x: randomInRange(0.1, 0.9),
+            y: Math.random() - 0.2
+          },
+          colors: ['#FFD700', '#E9D5FF', '#FFFFFF'], // Or, Violet, Blanc
+          shapes: ['star'], // Forme d'étoile
+          scalar: 1.2, // Taille des particules
+          disableForReducedMotion: true
+        });
+
+        // Arrêt de l'animation simple (un seul coup pour l'instant)
+        clearInterval(interval);
+      }, 250);
+      
+      // On lance aussi un coup immédiat centré
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#FFD700', '#E9D5FF'],
+        shapes: ['star'],
+      });
+    }
+  };
+
   return (
     <div className="space-y-3">
       <label className="block text-sm font-semibold">Comment te sens-tu ?</label>
@@ -25,7 +69,7 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
             type="button"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => onChange(mood.score)}
+            onClick={() => handleMoodChange(mood.score)}
             className={cn(
               "flex flex-col items-center gap-1 p-3 border border-border transition-all duration-150 min-w-[70px]",
               mood.color,
