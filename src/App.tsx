@@ -36,7 +36,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center">Chargement...</div>;
+    return <div className="flex h-screen items-center justify-center font-bold">Chargement...</div>;
   }
 
   if (!session) {
@@ -47,24 +47,48 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-  const [showStar, setShowStar] = useState(false);
+  const [showEffects, setShowEffects] = useState(false);
 
   useEffect(() => {
-    const checkTime = setInterval(() => {
+    const checkMirrorTime = setInterval(() => {
       const now = new Date();
-      // Vérifie s'il est 11h11
-      if (now.getHours() === 11 && now.getMinutes() === 11) {
-        setShowStar(true);
-        setTimeout(() => setShowStar(false), 3000);
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+
+      // Se déclenche si l'heure est égale aux minutes (ex: 10:10, 11:11, 22:22)
+      if (hours === minutes) {
+        setShowEffects(true);
+      } else {
+        setShowEffects(false);
       }
     }, 1000);
-    return () => clearInterval(checkTime);
+
+    return () => clearInterval(checkMirrorTime);
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeLoader />
-      {showStar && <div className="shooting-star" />}
+      
+      {/* EFFET : Lumière Arc-en-ciel subtile (Arrière-plan : z-index -1) */}
+      {showEffects && (
+        <div className="subtle-rainbow-bg">
+          <div className="h"></div>
+          <div className="v"></div>
+          {[...Array(25)].map((_, i) => (
+            <div key={i} className="rainbow"></div>
+          ))}
+        </div>
+      )}
+
+      {/* EFFET : Pluie d'étoiles filantes noires (Premier plan : z-index 9999) */}
+      {showEffects && (
+        <div className="shooting-stars-wrapper">
+          {[...Array(10)].map((_, i) => (
+            <span key={i}></span>
+          ))}
+        </div>
+      )}
       
       <BrowserRouter>
         <Routes>
