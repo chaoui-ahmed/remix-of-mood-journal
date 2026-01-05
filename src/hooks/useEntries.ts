@@ -10,17 +10,10 @@ export function useEntries(year?: number) {
   return useQuery({
     queryKey: ["entries", year],
     queryFn: async () => {
-      let query = supabase
-        .from("entries")
-        .select("*")
-        .order("date", { ascending: false });
-
+      let query = supabase.from("entries").select("*").order("date", { ascending: false });
       if (year) {
-        const startDate = `${year}-01-01`;
-        const endDate = `${year}-12-31`;
-        query = query.gte("date", startDate).lte("date", endDate);
+        query = query.gte("date", `${year}-01-01`).lte("date", `${year}-12-31`);
       }
-
       const { data, error } = await query;
       if (error) throw error;
       return data as Entry[];
@@ -32,16 +25,12 @@ export function useEntry(id: string | undefined) {
   return useQuery({
     queryKey: ["entry", id],
     queryFn: async () => {
-      if (!id) return null;
-      const { data, error } = await supabase
-        .from("entries")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
+      if (!id || id === "new") return null;
+      const { data, error } = await supabase.from("entries").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
       return data as Entry | null;
     },
-    enabled: !!id,
+    enabled: !!id && id !== "new",
   });
 }
 
@@ -54,9 +43,13 @@ export function useCreateEntry() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Non connecté");
 
+      // ✅ UPSERT : Crée ou remplace si la date existe déjà
       const { data, error } = await supabase
         .from("entries")
-        .insert({ ...entryData, user_id: userData.user.id })
+        .upsert(
+          { ...entryData, user_id: userData.user.id },
+          { onConflict: 'user_id, date' }
+        )
         .select()
         .single();
 
@@ -65,14 +58,15 @@ export function useCreateEntry() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entries"] });
-      toast({ title: "Succès", description: "Pixel ajouté !" });
+      toast({ title: "Succès", description: "Ton pixel a été mis à jour !" });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
   });
 }
 
+// useUpdateEntry reste utile pour les modifications via ID direct
 export function useUpdateEntry() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -90,7 +84,7 @@ export function useUpdateEntry() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entries"] });
-      toast({ title: "Succès", description: "Pixel mis à jour !" });
+      toast({ title: "Succès", description: "Modification enregistrée !" });
     },
   });
 }
