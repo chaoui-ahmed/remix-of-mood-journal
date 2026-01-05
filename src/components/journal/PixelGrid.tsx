@@ -25,6 +25,16 @@ interface PixelGridProps {
 
 const weekDays = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
+// ✅ SOLUTION : On définit les classes explicitement ici.
+// Ainsi, Tailwind "voit" les chaînes de caractères complètes et ne les supprime pas.
+const moodColorClasses: Record<number, string> = {
+  1: "bg-mood-1", // Utilise les couleurs définies dans tailwind.config
+  2: "bg-mood-2",
+  3: "bg-mood-3",
+  4: "bg-mood-4",
+  5: "bg-mood-5",
+};
+
 export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) {
   // 1. Calcul des jours du mois
   const days = useMemo(() => {
@@ -40,8 +50,6 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
     const map = new Map<string, Entry>();
     entries.forEach((entry) => {
       if (!entry.date) return;
-      // ✅ CORRECTION : On utilise la date string directe (YYYY-MM-DD) comme clé
-      // Cela évite les décalages de fuseau horaire qui empêchaient l'affichage des couleurs
       map.set(entry.date, entry);
     });
     return map;
@@ -67,10 +75,13 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
 
         {/* Affichage de chaque jour */}
         {days.map((day) => {
-          const dateKey = format(day, "yyyy-MM-dd"); // Format local correspondant à la DB
+          const dateKey = format(day, "yyyy-MM-dd");
           const entry = entryMap.get(dateKey);
           const isToday = isSameDay(day, new Date());
-          const score = entry ? Number(entry.mood_score) : null;
+          const score = entry?.mood_score ? Number(entry.mood_score) : null;
+
+          // Récupération de la classe via la Map sécurisée
+          const colorClass = score ? moodColorClasses[score] : "bg-white";
 
           return (
             <motion.button
@@ -80,8 +91,7 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
               onClick={() => onDayClick(day, entry)}
               className={cn(
                 "pixel-cell aspect-square flex items-center justify-center relative transition-colors",
-                // ✅ Applique la couleur si 'score' existe, sinon blanc
-                score ? `mood-${score}` : "bg-white",
+                colorClass, // ✅ Application de la classe valide
                 // Bordure orange pour aujourd'hui
                 isToday && "ring-4 ring-orange-500 ring-inset z-10"
               )}
