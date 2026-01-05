@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Calendar, Hash } from "lucide-react";
@@ -10,7 +10,7 @@ interface EntryCardProps {
     content: string;
     mood_score: number;
     hashtags: string[];
-    date: string; // Remplacement de created_at par date
+    date: string; 
   };
   onClick?: () => void;
 }
@@ -32,6 +32,11 @@ const moodEmojis: Record<number, string> = {
 };
 
 export function EntryCard({ entry, onClick }: EntryCardProps) {
+  // Préparation sécurisée de la date pour éviter le "RangeError: Invalid time value"
+  // On crée l'objet Date et on vérifie s'il est valide avant l'affichage
+  const dateObj = new Date(entry.date);
+  const isDateValid = entry.date && isValid(dateObj);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -41,19 +46,24 @@ export function EntryCard({ entry, onClick }: EntryCardProps) {
       className={cn(
         "bg-card border border-border shadow-brutal p-4 cursor-pointer transition-all duration-150",
         "hover:shadow-brutal-hover border-l-4",
-        moodClasses[entry.mood_score]
+        moodClasses[entry.mood_score] || "border-l-gray-400"
       )}
     >
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="w-4 h-4" />
-          {/* Correction ici : utilisation de entry.date */}
-          <span>{format(new Date(entry.date), "d MMMM yyyy", { locale: fr })}</span>
+          <span>
+            {isDateValid 
+              ? format(dateObj, "d MMMM yyyy", { locale: fr }) 
+              : "Date invalide"} 
+          </span>
         </div>
-        <span className="text-2xl">{moodEmojis[entry.mood_score]}</span>
+        <span className="text-2xl">{moodEmojis[entry.mood_score] || "❓"}</span>
       </div>
 
-      <p className="text-foreground line-clamp-3 mb-3">{entry.content}</p>
+      <p className="text-foreground line-clamp-3 mb-3">
+        {entry.content || "Aucun contenu écrit..."}
+      </p>
 
       {entry.hashtags && entry.hashtags.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">

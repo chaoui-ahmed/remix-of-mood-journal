@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { format, startOfYear, eachDayOfInterval, endOfYear, getDay, isSameDay } from "date-fns";
+import { format, startOfYear, eachDayOfInterval, endOfYear, getDay, isSameDay, isValid } from "date-fns";
 import { fr } from "date-fns/locale";
 
 interface Entry {
@@ -29,15 +29,28 @@ const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep",
 
 export function PixelGrid({ entries, year, onDayClick }: PixelGridProps) {
   const days = useMemo(() => {
-    const start = startOfYear(new Date(year, 0, 1));
-    const end = endOfYear(new Date(year, 0, 1));
+    // Sécurisation de l'année pour éviter des dates invalides
+    const safeYear = year || new Date().getFullYear();
+    const start = startOfYear(new Date(safeYear, 0, 1));
+    const end = endOfYear(new Date(safeYear, 0, 1));
     return eachDayOfInterval({ start, end });
   }, [year]);
 
   const entryMap = useMemo(() => {
     const map = new Map<string, Entry>();
     entries.forEach((entry) => {
-      const dateKey = format(new Date(entry.created_at), "yyyy-MM-dd");
+      // --- CORRECTION CRITIQUE ICI ---
+      // On vérifie d'abord si created_at existe
+      if (!entry.created_at) return;
+
+      const dateObj = new Date(entry.created_at);
+      
+      // On vérifie si la date est valide avant de formater
+      if (!isValid(dateObj)) return; 
+
+      const dateKey = format(dateObj, "yyyy-MM-dd");
+      // -------------------------------
+
       // Keep the entry with highest mood_score for each day
       const existing = map.get(dateKey);
       if (!existing || entry.mood_score > existing.mood_score) {
@@ -51,6 +64,8 @@ export function PixelGrid({ entries, year, onDayClick }: PixelGridProps) {
   const weeks = useMemo(() => {
     const result: (Date | null)[][] = [];
     let currentWeek: (Date | null)[] = [];
+
+    if (days.length === 0) return result;
 
     // Pad the first week with nulls
     const firstDayOfWeek = getDay(days[0]);

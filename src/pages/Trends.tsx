@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { getDay, format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { getDay, isValid } from "date-fns";
 import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { useEntries } from "@/hooks/useEntries";
@@ -17,7 +16,17 @@ export default function Trends() {
     for (let i = 0; i < 7; i++) totals[i] = { sum: 0, count: 0 };
 
     entries.forEach((entry) => {
-      const day = getDay(new Date(entry.created_at));
+      // --- CORRECTION CRITIQUE ICI ---
+      if (!entry.created_at) return; // Ignore si pas de date
+
+      const dateObj = new Date(entry.created_at);
+      
+      // Si la date est invalide, on passe à l'entrée suivante
+      if (!isValid(dateObj)) return; 
+
+      const day = getDay(dateObj);
+      // -------------------------------
+      
       totals[day].sum += entry.mood_score;
       totals[day].count += 1;
     });
