@@ -47,31 +47,24 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-  // État pour gérer l'apparition de l'étoile filante
   const [showStar, setShowStar] = useState(false);
 
   useEffect(() => {
-    // Vérification de l'heure toutes les secondes
     const checkTime = setInterval(() => {
       const now = new Date();
-      // Si il est 11h11
-      if (now.getHours() === 11 && now.getMinutes() === 11) or (now.getHours() === 22 && now.getMinutes() === 22) {
+      // Vérifie s'il est 11h11
+      if (now.getHours() === 11 && now.getMinutes() === 11) {
         setShowStar(true);
-        // On cache l'étoile après 3 secondes (durée de l'animation CSS + marge)
         setTimeout(() => setShowStar(false), 3000);
       }
     }, 1000);
-
     return () => clearInterval(checkTime);
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Élément de l'étoile filante (visible uniquement si showStar est vrai) */}
-      {showStar && <div className="shooting-star" />}
-
-      {/* ✅ Le ThemeLoader est placé ici pour surveiller et peindre le fond partout */}
       <ThemeLoader />
+      {showStar && <div className="shooting-star" />}
       
       <BrowserRouter>
         <Routes>
