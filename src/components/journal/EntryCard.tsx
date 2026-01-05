@@ -1,119 +1,89 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react"; // On récupère les flèches
-import { format, addMonths, subMonths } from "date-fns";
+import { motion } from "framer-motion";
+import { format, isValid } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Navigation } from "@/components/layout/Navigation";
-import { PageTransition } from "@/components/layout/PageTransition";
-import { PixelGrid } from "@/components/journal/PixelGrid";
-import { EntryCard } from "@/components/journal/EntryCard";
-import { useEntries } from "@/hooks/useEntries";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Calendar, Hash } from "lucide-react";
 
-export default function Index() {
-  // État pour savoir quel mois on regarde (par défaut : aujourd'hui)
-  const [currentDate, setCurrentDate] = useState(new Date());
-  
-  // On charge les données de l'année du mois affiché
-  const { data: entries = [], isLoading } = useEntries(currentDate.getFullYear());
-  const navigate = useNavigate();
-
-  // Fonctions de navigation
-  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-
-  // Empêcher d'aller dans le futur (optionnel, tu peux l'enlever si tu veux)
-  const isFuture = addMonths(currentDate, 1) > new Date();
-
-  const handleDayClick = (date: Date, entry?: { id: string }) => {
-    if (entry) {
-      navigate(`/entry/${entry.id}`);
-    } else {
-      navigate(`/entry?date=${format(date, "yyyy-MM-dd")}`);
-    }
+interface EntryCardProps {
+  entry: {
+    id: string;
+    content: string;
+    mood_score: number;
+    hashtags: string[];
+    // On accepte les deux noms de variables pour éviter le crash
+    date?: string;       
+    created_at?: string; 
   };
+  onClick?: () => void;
+}
 
-  // On filtre les entrées récentes pour l'affichage en bas (optionnel)
-  const recentEntries = entries.slice(0, 3);
+// Couleurs douces pour la bordure gauche
+const moodClasses: Record<number, string> = {
+  1: "border-l-mood-1",
+  2: "border-l-mood-2",
+  3: "border-l-mood-3",
+  4: "border-l-mood-4",
+  5: "border-l-mood-5",
+};
+
+// Les nouveaux emojis "Cute"
+const moodEmojis: Record<number, string> = {
+  1: "⛈️", 
+  2: "☔️", 
+  3: "😐", 
+  4: "😊", 
+  5: "😁",
+};
+
+
+
+export function EntryCard({ entry, onClick }: EntryCardProps) {
+  // 1. Sécurisation de la date (prend 'date' ou 'created_at')
+  const rawDate = entry.date || entry.created_at;
+  const dateObj = rawDate ? new Date(rawDate) : null;
+  const isDateSafe = dateObj && isValid(dateObj);
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <PageTransition>
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-8 text-center md:text-left">
-            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
-              Mes Pixels ✨
-            </h1>
-            <p className="text-muted-foreground font-medium italic">
-               Chaque carré est un souvenir. Remplis-les de couleurs ! 🎨
-            </p>
-          </div>
-          
-          <div className="bg-card/50 backdrop-blur-sm border border-white/20 shadow-brutal p-6 mb-8 rounded-3xl">
-            {/* Barre de navigation du calendrier */}
-            <div className="flex items-center justify-between mb-6">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={prevMonth}
-                className="hover:bg-white/50 rounded-full"
-              >
-                <ChevronLeft className="w-6 h-6 text-gray-700" />
-              </Button>
-              
-              <span className="text-xl font-black uppercase tracking-widest text-gray-800">
-                {format(currentDate, "MMMM yyyy", { locale: fr })}
-              </span>
-              
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={nextMonth} 
-                disabled={isFuture} // Désactive le bouton si c'est le futur
-                className="hover:bg-white/50 rounded-full disabled:opacity-30"
-              >
-                <ChevronRight className="w-6 h-6 text-gray-700" />
-              </Button>
-            </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ x: -2, y: -2 }}
+      onClick={onClick}
+      className={cn(
+        "bg-white/60 backdrop-blur-sm border border-white/40 shadow-sm p-4 cursor-pointer transition-all duration-300 rounded-2xl",
+        "hover:shadow-md hover:bg-white/80 border-l-4",
+        // Application de la couleur d'humeur
+        moodClasses[entry.mood_score] || "border-l-gray-300"
+      )}
+    >
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Calendar className="w-3.5 h-3.5" />
+          <span>
+            {isDateSafe 
+              ? format(dateObj!, "d MMMM yyyy", { locale: fr }) 
+              : "Date inconnue"}
+          </span>
+        </div>
+        <span className="text-2xl filter drop-shadow-sm">
+          {moodEmojis[entry.mood_score] || "😶"}
+        </span>
+      </div>
 
-            {isLoading ? (
-              <div className="h-64 flex items-center justify-center text-muted-foreground">
-                Chargement des souvenirs...
-              </div>
-            ) : (
-              // ✅ On passe la 'currentDate' à la grille pour qu'elle sache quel mois afficher
-              <PixelGrid 
-                entries={entries} 
-                currentDate={currentDate} 
-                onDayClick={handleDayClick} 
-              />
-            )}
-            
-            {/* Légende rapide */}
-            <div className="flex justify-center gap-3 mt-8 flex-wrap">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <div key={s} className="flex items-center gap-1.5">
-                  <div className={`w-3 h-3 rounded-full bg-mood-${s}`} />
-                </div>
-              ))}
-            </div>
-          </div>
+      <p className="text-gray-700 line-clamp-3 mb-3 text-sm leading-relaxed font-medium">
+        {entry.content || "Contenu vide..."}
+      </p>
 
-          {recentEntries.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <span>📝</span> Derniers souvenirs
-              </h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {recentEntries.map((entry) => (
-                  <EntryCard key={entry.id} entry={entry} onClick={() => navigate(`/entry/${entry.id}`)} />
-                ))}
-              </div>
-            </div>
-          )}
-        </main>
-      </PageTransition>
-    </div>
+      {entry.hashtags && entry.hashtags.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Hash className="w-3 h-3 text-pink-400" />
+          {entry.hashtags.map((tag) => (
+            <span key={tag} className="text-[10px] font-bold uppercase tracking-wide text-pink-500 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-100">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </motion.div>
   );
 }
