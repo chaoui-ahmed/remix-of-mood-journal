@@ -99,8 +99,14 @@ export function useUpdateEntry() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    // Update the onSuccess callback to receive 'variables' (which contains the id)
+    onSuccess: (_, variables) => {
+      // 1. Refresh the list (existing behavior)
       queryClient.invalidateQueries({ queryKey: ["entries"] });
+      
+      // 2. ADD THIS: Refresh the specific entry cache so the edit page gets new data
+      queryClient.invalidateQueries({ queryKey: ["entry", variables.id] });
+      
       toast({ title: "Succès", description: "Modification enregistrée !" });
     },
     onError: (error: any) => {
