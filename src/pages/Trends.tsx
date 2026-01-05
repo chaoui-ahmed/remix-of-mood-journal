@@ -16,8 +16,9 @@ export default function Trends() {
     for (let i = 0; i < 7; i++) totals[i] = { sum: 0, count: 0 };
 
     entries.forEach((entry) => {
-      if (!entry.date) return; // ✅ Utilisation de .date
+      if (!entry.date) return; // ✅ Changé de created_at vers date
       const dateObj = new Date(entry.date);
+      
       if (isValid(dateObj)) {
         const day = getDay(dateObj);
         totals[day].sum += Number(entry.mood_score);
