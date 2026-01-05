@@ -5,51 +5,83 @@ import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { MoodSelector } from "@/components/journal/MoodSelector";
 import { HashtagInput } from "@/components/journal/HashtagInput";
-import { useEntry, useCreateEntry } from "@/hooks/useEntries";
+import { useEntry, useCreateEntry, useUpdateEntry } from "@/hooks/useEntries";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Entry() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const { data: existingEntry, isLoading } = useEntry(id);
   const createEntry = useCreateEntry();
+  const updateEntry = useUpdateEntry();
 
   const [content, setContent] = useState("");
   const [moodScore, setMoodScore] = useState(3);
   const [hashtags, setHashtags] = useState<string[]>([]);
-  const [date] = useState(searchParams.get("date") || new Date().toISOString().split('T')[0]);
+  
+  // Récupère la date de l'URL ou utilise aujourd'hui
+  const urlDate = searchParams.get("date");
+  const [date, setDate] = useState(urlDate || new Date().toISOString().split('T')[0]);
 
+  // ✅ CORRECTION MAJEURE : Réinitialisation du formulaire
   useEffect(() => {
     if (existingEntry) {
+      // Si on modifie un pixel existant, on remplit les champs
       setContent(existingEntry.content || "");
       setMoodScore(existingEntry.mood_score || 3);
       setHashtags(existingEntry.hashtags || []);
+      // On s'assure que la date affichée est celle de l'entrée
+      if (existingEntry.date) setDate(existingEntry.date);
+    } else {
+      // Si c'est une nouvelle entrée (ou changement de date), ON VIDE TOUT
+      setContent("");
+      setMoodScore(3);
+      setHashtags([]);
+      // On remet la date de l'URL ou d'aujourd'hui
+      if (urlDate) setDate(urlDate);
     }
-  }, [existingEntry]);
+  }, [existingEntry, id, urlDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim()) {
+      toast({ title: "Champ vide", description: "Le contenu ne peut pas être vide.", variant: "destructive" });
+      return;
+    }
+
+    const payload = { content, mood_score: moodScore, hashtags, date };
 
     try {
-      // ✅ Utilise upsert via useCreateEntry (gère ID existant ou date existante)
-      await createEntry.mutateAsync({ content, mood_score: moodScore, hashtags, date });
+      if (id && id !== "new") {
+        await updateEntry.mutateAsync({ id, ...payload });
+        toast({ title: "Succès", description: "Pixel mis à jour !" });
+      } else {
+        await createEntry.mutateAsync(payload);
+        toast({ title: "Succès", description: "Nouveau pixel enregistré !" });
+      }
       navigate("/");
-    } catch (error) {
-      console.error("Erreur:", error);
+    } catch (error: any) {
+      console.error("Erreur sauvegarde:", error);
+      toast({ title: "Erreur", description: error.message || "Impossible de sauvegarder.", variant: "destructive" });
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center font-black">CHARGEMENT...</div>;
+  if (isLoading) return <div className="p-8 text-center font-black uppercase">Chargement...</div>;
 
   return (
-    <div className="min-h-screen bg-background">
+    // ✅ CORRECTION : Suppression de 'bg-background' pour voir la couleur du thème
+    <div className="min-h-screen">
       <Navigation />
       <PageTransition>
         <main className="container mx-auto px-4 py-8 max-w-2xl">
           <div className="flex items-center gap-4 mb-8">
-            <button onClick={() => navigate(-1)} className="btn-brutal p-2 bg-white">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="btn-brutal p-2 bg-white"
+            >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="text-4xl font-black text-orange-500 uppercase tracking-tighter">
@@ -70,13 +102,15 @@ export default function Entry() {
 
             <div className="card-brutal p-6 bg-white">
               <label className="block text-sm font-black uppercase mb-3 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-yellow-500" /> Ton histoire
+                <Sparkles className="w-4 h-4 text-yellow-500" />
+                Raconte-moi ta journée...
               </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
-                className="w-full bg-white border-2 border-black p-4 focus:outline-none font-bold shadow-brutal-sm"
+                placeholder="Aujourd'hui, j'ai..."
+                className="w-full bg-white border-2 border-black p-4 focus:outline-none font-bold shadow-brutal-sm text-lg"
                 required
               />
             </div>
@@ -87,11 +121,11 @@ export default function Entry() {
 
             <button 
               type="submit" 
-              className="btn-brutal w-full py-6 text-xl bg-black text-white hover:bg-gray-900"
-              disabled={createEntry.isPending}
+              className="btn-brutal w-full py-6 text-xl font-black bg-black text-white hover:bg-gray-900 flex items-center justify-center gap-2"
+              disabled={createEntry.isPending || updateEntry.isPending}
             >
-              <Save className="w-5 h-5 inline mr-2" /> 
-              {createEntry.isPending ? "ENREGISTREMENT..." : "SAUVEGARDER MON PIXEL"}
+              <Save className="w-5 h-5" />
+              {createEntry.isPending || updateEntry.isPending ? "SAUVEGARDE..." : "ENREGISTRER MON PIXEL"}
             </button>
           </form>
         </main>

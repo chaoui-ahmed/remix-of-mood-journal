@@ -40,10 +40,9 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
     const map = new Map<string, Entry>();
     entries.forEach((entry) => {
       if (!entry.date) return;
-      const d = new Date(entry.date);
-      if (isValid(d)) {
-        map.set(format(d, "yyyy-MM-dd"), entry);
-      }
+      // ✅ CORRECTION : On utilise la date string directe (YYYY-MM-DD) comme clé
+      // Cela évite les décalages de fuseau horaire qui empêchaient l'affichage des couleurs
+      map.set(entry.date, entry);
     });
     return map;
   }, [entries]);
@@ -68,7 +67,7 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
 
         {/* Affichage de chaque jour */}
         {days.map((day) => {
-          const dateKey = format(day, "yyyy-MM-dd");
+          const dateKey = format(day, "yyyy-MM-dd"); // Format local correspondant à la DB
           const entry = entryMap.get(dateKey);
           const isToday = isSameDay(day, new Date());
           const score = entry ? Number(entry.mood_score) : null;
@@ -81,9 +80,9 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
               onClick={() => onDayClick(day, entry)}
               className={cn(
                 "pixel-cell aspect-square flex items-center justify-center relative transition-colors",
-                // Applique la couleur d'humeur ou blanc par défaut
+                // ✅ Applique la couleur si 'score' existe, sinon blanc
                 score ? `mood-${score}` : "bg-white",
-                // Style spécifique pour aujourd'hui (bordure orange vive)
+                // Bordure orange pour aujourd'hui
                 isToday && "ring-4 ring-orange-500 ring-inset z-10"
               )}
             >
