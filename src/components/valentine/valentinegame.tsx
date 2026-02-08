@@ -13,7 +13,7 @@ export function ScratchGame() {
   useEffect(() => {
     const today = new Date();
     // Période d'activation : du 8 au 15 Février
-    const isValentineWeek = today.getMonth() === 1 && today.getDate() >= 8 && today.getDate() <= 15;
+    const isValentineWeek = today.getMonth() === 1 && today.getDate() >= 9 && today.getDate() <= 15;
     
     // VÉRIFICATION : Est-ce qu'on a déjà joué ?
     const hasPlayed = localStorage.getItem("scratch_card_played");
