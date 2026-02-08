@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { X } from "lucide-react"; // Correction : Ajout de l'import X manquant
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ScratchGame() {
@@ -7,20 +7,24 @@ export function ScratchGame() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [scratchProgress, setScratchProgress] = useState(0);
 
   useEffect(() => {
     const today = new Date();
-    // Active du 8 au 15 Février
+    // Période d'activation : du 8 au 15 Février
     const isValentineWeek = today.getMonth() === 1 && today.getDate() >= 8 && today.getDate() <= 15;
     
-    // On enlève la vérification du localStorage pour que tu puisses tester
-    if (isValentineWeek) {
+    // VÉRIFICATION : Est-ce qu'on a déjà joué ?
+    const hasPlayed = localStorage.getItem("scratch_card_played");
+
+    // Si c'est la semaine ET qu'on n'a pas encore joué, on ouvre !
+    if (isValentineWeek && !hasPlayed) {
        setIsOpen(true);
     }
   }, []);
 
-  // --- Initialisation du Canvas ---
+  // --- Initialisation du Canvas (Gris à gratter) ---
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -32,8 +36,12 @@ export function ScratchGame() {
     const updateSize = () => {
       canvas.width = container.offsetWidth;
       canvas.height = container.offsetHeight;
+      
+      // Couche grise
       ctx.fillStyle = "#CCCCCC"; 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Texte sur le gris
       ctx.font = "bold 24px 'Space Grotesk', sans-serif";
       ctx.fillStyle = "#999999";
       ctx.textAlign = "center";
@@ -63,22 +71,32 @@ export function ScratchGame() {
     };
 
     const scratch = (x: number, y: number) => {
-      ctx.globalCompositeOperation = "destination-out";
+      ctx.globalCompositeOperation = "destination-out"; // Efface le gris
       ctx.beginPath();
       ctx.arc(x, y, 30, 0, 2 * Math.PI);
       ctx.fill();
       
-      // Vérification progression
-      if (Math.random() > 0.1) return;
+      // Vérification de la progression pour gagner
+      if (Math.random() > 0.1) return; // Optimisation perf
+      
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const pixels = imageData.data;
       let transparentPixels = 0;
+      
       for (let i = 0; i < pixels.length; i += 4) {
         if (pixels[i + 3] < 128) transparentPixels++;
       }
-      if ((transparentPixels / (pixels.length / 4)) * 100 > 40) {
+      
+      const percent = (transparentPixels / (pixels.length / 4)) * 100;
+      setScratchProgress(percent);
+
+      if (percent > 40) {
+        // VICTOIRE !
         setIsRevealed(true);
-        canvas.style.opacity = "0";
+        // C'EST ICI QU'ON SAUVEGARDE : On ne réaffichera plus le jeu
+        localStorage.setItem("scratch_card_played", "true");
+        
+        canvas.style.opacity = "0"; // Disparition douce
         canvas.style.pointerEvents = "none";
       }
     };
@@ -104,27 +122,51 @@ export function ScratchGame() {
     };
   }, [isRevealed, isOpen]);
 
+  // Fonction pour fermer la fenêtre
+  const handleClose = () => {
+    setIsOpen(false);
+    // On peut recharger la page pour forcer l'affichage du thème si besoin, 
+    // mais normalement ThemeLoader le gère déjà.
+    window.location.reload(); 
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in zoom-in duration-300">
-      {/* Correction: J'ai retiré <Confetti ... /> ici car l'import n'existe pas */}
       <div className="bg-white p-2 card-brutal max-w-md w-full relative">
-        <button onClick={() => setIsOpen(false)} className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 border-2 border-black shadow-brutal-sm z-50">
+        <button 
+          onClick={handleClose}
+          className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 border-2 border-black shadow-brutal-sm z-50"
+        >
           <X className="w-6 h-6" />
         </button>
+
         <div className="text-center mb-4 mt-2">
             <h2 className="text-2xl font-black uppercase text-pink-600">Veux-tu être ma valentine ? 💖</h2>
             <p className="text-xs font-mono uppercase text-gray-500">GRATTE LA ZONE CI-DESSOUS</p>
         </div>
+
         <div ref={containerRef} className="relative w-full h-64 border-2 border-black bg-yellow-100 overflow-hidden cursor-crosshair">
+          {/* CE QUI EST CACHÉ */}
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none">
-            {/* J'ai retiré le Trophy ici comme demandé */}
-            <h3 className="text-3xl font-black uppercase text-red-500 mb-2 transform -rotate-2">T'as pas le choix !</h3>
-            <p className="text-lg font-bold">❤️</p>
-            <button onClick={() => setIsOpen(false)} className="mt-4 btn-brutal bg-black text-white px-6 py-2 text-sm">J'accepte mon sort</button>
+            <h3 className="text-3xl font-black uppercase text-red-500 mb-2 transform -rotate-2">
+              T'as pas le choix !
+            </h3>
+            <p className="text-4xl animate-pulse">❤️</p>
+            <button 
+                onClick={handleClose}
+                className="mt-6 btn-brutal bg-black text-white px-6 py-3 text-lg hover:scale-105 transition-transform"
+            >
+                J'accepte mon sort
+            </button>
           </div>
-          <canvas ref={canvasRef} className="absolute inset-0 w-full h-full transition-opacity duration-700 ease-out z-10" />
+
+          {/* LA SURFACE À GRATTER */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full transition-opacity duration-700 ease-out z-10"
+          />
         </div>
       </div>
     </div>
