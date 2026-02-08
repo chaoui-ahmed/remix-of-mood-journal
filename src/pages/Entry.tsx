@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, X } from "lucide-react";
 import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { MoodSelector } from "@/components/journal/MoodSelector";
@@ -22,25 +22,22 @@ export default function Entry() {
   const [moodScore, setMoodScore] = useState(3);
   const [hashtags, setHashtags] = useState<string[]>([]);
   
-  // Récupère la date de l'URL ou utilise aujourd'hui
+  // État pour gérer l'affichage de la popup "Call Me Maybe"
+  const [showSpecialPopup, setShowSpecialPopup] = useState(false);
+  
   const urlDate = searchParams.get("date");
   const [date, setDate] = useState(urlDate || new Date().toISOString().split('T')[0]);
 
-  // ✅ CORRECTION MAJEURE : Réinitialisation du formulaire
   useEffect(() => {
     if (existingEntry) {
-      // Si on modifie un pixel existant, on remplit les champs
       setContent(existingEntry.content || "");
       setMoodScore(existingEntry.mood_score || 3);
       setHashtags(existingEntry.hashtags || []);
-      // On s'assure que la date affichée est celle de l'entrée
       if (existingEntry.date) setDate(existingEntry.date);
     } else {
-      // Si c'est une nouvelle entrée (ou changement de date), ON VIDE TOUT
       setContent("");
       setMoodScore(3);
       setHashtags([]);
-      // On remet la date de l'URL ou d'aujourd'hui
       if (urlDate) setDate(urlDate);
     }
   }, [existingEntry, id, urlDate]);
@@ -48,39 +45,114 @@ export default function Entry() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) {
-      toast({ title: "Champ vide", description: "Le contenu ne peut pas être vide.", variant: "destructive" });
+      toast({
+        title: "Champ vide",
+        description: "Le contenu ne peut pas être vide.",
+        variant: "destructive",
+      });
       return;
     }
 
-    const payload = { content, mood_score: moodScore, hashtags, date };
+    const payload = {
+      content,
+      mood_score: moodScore,
+      hashtags,
+      date,
+    };
 
     try {
       if (id && id !== "new") {
         await updateEntry.mutateAsync({ id, ...payload });
-        toast({ title: "Succès", description: "Pixel mis à jour !" });
       } else {
         await createEntry.mutateAsync(payload);
-        toast({ title: "Succès", description: "Nouveau pixel enregistré !" });
       }
-      navigate("/");
+
+      // VÉRIFICATION DU SCORE POUR L'EASTER EGG
+      if (moodScore === 1) {
+        setShowSpecialPopup(true);
+      } else {
+        toast({
+          title: "Succès",
+          description: "Pixel enregistré avec succès !",
+        });
+        navigate("/");
+      }
+      
     } catch (error: any) {
       console.error("Erreur sauvegarde:", error);
-      toast({ title: "Erreur", description: error.message || "Impossible de sauvegarder.", variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de sauvegarder l'entrée.",
+        variant: "destructive",
+      });
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center font-black uppercase">Chargement...</div>;
+  // Fonction appelée quand on ferme la popup (bouton ou croix)
+  const handleClosePopup = () => {
+    setShowSpecialPopup(false);
+    navigate("/");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl font-black uppercase animate-pulse">Chargement...</div>
+      </div>
+    );
+  }
 
   return (
-    // ✅ CORRECTION : Suppression de 'bg-background' pour voir la couleur du thème
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20">
       <Navigation />
+
+      {/* POPUP SPECIAL CALL ME MAYBE */}
+      {showSpecialPopup && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in zoom-in duration-300">
+          <div className="bg-white p-2 card-brutal max-w-sm w-full relative flex flex-col items-center text-center">
+            
+            {/* Bouton fermeture croix */}
+            <button 
+              onClick={handleClosePopup}
+              className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 border-2 border-black shadow-brutal-sm z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            {/* Image */}
+            <div className="border-2 border-black w-full mb-4">
+               <img 
+                src="https://i.pinimg.com/736x/74/72/0b/74720b4dc3956fff41810ab55ee192b6.jpg" 
+                alt="Call me maybe"
+                className="w-full h-auto object-cover"
+              />
+            </div>
+
+            {/* Texte */}
+            <h3 className="text-2xl font-black uppercase text-pink-600 mb-2">
+              So call me maybe 💖
+            </h3>
+            <p className="text-xl font-mono font-bold bg-yellow-300 px-3 py-1 border-2 border-black transform -rotate-2 mb-6">
+              06 35 47 70 19
+            </p>
+
+            {/* Bouton OK */}
+            <button 
+              onClick={handleClosePopup}
+              className="w-full btn-brutal bg-black text-white hover:bg-gray-800 py-3"
+            >
+              C'EST NOTÉ !
+            </button>
+          </div>
+        </div>
+      )}
+
       <PageTransition>
         <main className="container mx-auto px-4 py-8 max-w-2xl">
           <div className="flex items-center gap-4 mb-8">
             <button 
               onClick={() => navigate(-1)} 
-              className="btn-brutal p-2 bg-white"
+              className="btn-brutal p-2 bg-white hover:bg-gray-100"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -91,7 +163,7 @@ export default function Entry() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="text-center">
-              <span className="inline-block px-4 py-1 border-2 border-black font-black shadow-brutal-sm bg-white uppercase">
+              <span className="inline-block px-4 py-1 border-2 border-black font-black shadow-brutal-sm bg-white uppercase transform -rotate-1">
                 📅 {date}
               </span>
             </div>
@@ -110,7 +182,7 @@ export default function Entry() {
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
                 placeholder="Aujourd'hui, j'ai..."
-                className="w-full bg-white border-2 border-black p-4 focus:outline-none font-bold shadow-brutal-sm text-lg"
+                className="w-full bg-white border-2 border-black p-4 focus:outline-none font-bold shadow-brutal-sm text-lg resize-none"
                 required
               />
             </div>
@@ -121,7 +193,7 @@ export default function Entry() {
 
             <button 
               type="submit" 
-              className="btn-brutal w-full py-6 text-xl font-black bg-black text-white hover:bg-gray-900 flex items-center justify-center gap-2"
+              className="btn-brutal w-full py-6 text-xl font-black bg-black text-white hover:bg-gray-900 flex items-center justify-center gap-2 disabled:opacity-70"
               disabled={createEntry.isPending || updateEntry.isPending}
             >
               <Save className="w-5 h-5" />

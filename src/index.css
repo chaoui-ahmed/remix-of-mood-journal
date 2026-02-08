@@ -27,7 +27,7 @@
     --ring: 0 0% 0%;
     --radius: 0px;
 
-    /* Mood Colors - Soft Pastel Palette */
+    /* Mood Colors - Soft Pastel Palette (Par défaut) */
     --mood-1: 0 93% 88%;      
     --mood-2: 27 98% 83%;     
     --mood-3: 53 98% 77%;     
@@ -37,6 +37,28 @@
     --shadow-brutal: 4px 4px 0px 0px rgba(0, 0, 0, 1);
     --shadow-brutal-sm: 2px 2px 0px 0px rgba(0, 0, 0, 1);
     --shadow-brutal-lg: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+  }
+
+  /* --- THÈME SAINT-VALENTIN (Surcharge les variables ci-dessus) --- */
+  .valentine-theme {
+    --background: 350 100% 98%; /* Fond très rose pâle */
+    --foreground: 345 80% 20%;  /* Texte rouge foncé */
+    
+    --card: 0 0% 100%;
+    --border: 345 60% 80%;      /* Bordures rosées */
+    
+    --primary: 345 90% 50%;     /* Rouge Amour */
+    --primary-foreground: 0 0% 100%;
+
+    --muted: 340 50% 95%;
+    --muted-foreground: 345 40% 40%;
+
+    /* Palette Mood Spéciale St Valentin (Dégradé de Rouge/Rose) */
+    --mood-1: 0 0% 20%;         /* Noir/Gris (Cœur brisé) */
+    --mood-2: 340 60% 80%;      /* Rose pâle */
+    --mood-3: 345 80% 70%;      /* Rose bonbon */
+    --mood-4: 350 85% 60%;      /* Rouge clair */
+    --mood-5: 355 90% 50%;      /* Rouge passion */
   }
 
   .dark {
@@ -67,11 +89,13 @@
     @apply border border-border cursor-pointer transition-all duration-150;
     box-shadow: var(--shadow-brutal-sm);
   }
+  /* Les classes mood utilisent les variables CSS, donc elles s'adapteront au thème */
   .mood-1 { background-color: hsl(var(--mood-1)); }
   .mood-2 { background-color: hsl(var(--mood-2)); }
   .mood-3 { background-color: hsl(var(--mood-3)); }
   .mood-4 { background-color: hsl(var(--mood-4)); }
   .mood-5 { background-color: hsl(var(--mood-5)); }
+  
   .btn-brutal {
     @apply px-4 py-2 font-semibold border border-border bg-card text-foreground;
     box-shadow: var(--shadow-brutal);
@@ -79,98 +103,31 @@
   }
 }
 
-/* --- SYSTÈME : PLUIE D'ÉTOILES FILANTES NOIRES --- */
-.shooting-stars-wrapper {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    pointer-events: none;
-    overflow: hidden;
+/* --- ANIMATION PLUIE DE CŒURS --- */
+.hearts-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
 }
 
-.shooting-stars-wrapper span {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: #000; 
-    border-radius: 50%;
-    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1), 0 0 20px rgb(0, 0, 0);
-    animation: animate-star-rain 3s linear infinite;
+.heart-falling {
+  position: absolute;
+  top: -10%;
+  animation: fall-down linear forwards;
 }
 
-.shooting-stars-wrapper span::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 300px;
-    height: 1px;
-    background: linear-gradient(90deg, #000, transparent);
-}
-
-@keyframes animate-star-rain {
-    0% { transform: rotate(315deg) translateX(0); opacity: 1; }
-    100% { transform: rotate(315deg) translateX(-1500px); opacity: 0; }
-}
-
-/* Positions et Délais pour les étoiles */
-.shooting-stars-wrapper span:nth-child(1) { top: 0; right: 0; animation-delay: 0s; }
-.shooting-stars-wrapper span:nth-child(2) { top: 0; right: 20%; animation-delay: 0.2s; animation-duration: 3s; }
-.shooting-stars-wrapper span:nth-child(3) { top: 10%; right: 0; animation-delay: 0.4s; animation-duration: 2s; }
-.shooting-stars-wrapper span:nth-child(n+4) { top: 0; right: 50%; animation-delay: 1.5s; }
-
-/* --- SYSTÈME : ARC-EN-CIEL SUBTIL (ARRIÈRE-PLAN) --- */
-.subtle-rainbow-bg {
-    position: fixed;
-    inset: 0;
-    z-index: -1; 
-    pointer-events: none;
-    overflow: hidden;
-    opacity: 0.3;
-    filter: blur(80px); /* Flou pour un effet de lumière diffuse */
-}
-
-.rainbow {
-    height: 100vh;
-    width: 0;
-    top: 0;
-    position: absolute;
-    transform: rotate(10deg);
-    transform-origin: top right;
-    --purple: rgb(232, 121, 249);
-    --blue: rgb(96, 165, 250);
-    --green: rgb(94, 234, 212);
-    box-shadow: -130px 0 80px 40px white, 
-                -50px 0 50px 25px var(--purple),
-                0 0 50px 25px var(--blue), 
-                50px 0 50px 25px var(--green),
-                130px 0 80px 40px white;
-    animation: rainbow-slide 45s linear infinite;
-}
-
-@keyframes rainbow-slide {
-    from { right: -25vw; }
-    to { right: 125vw; }
-}
-
-.rainbow:nth-child(1)  { animation-delay: -1.8s; }
-.rainbow:nth-child(2)  { animation-delay: -3.6s; }
-.rainbow:nth-child(n+3) { animation-delay: -10s; animation-duration: 35s; }
-
-/* Halo blanc (Vignettage) */
-.subtle-rainbow-bg .h {
-    box-shadow: 0 0 50vh 40vh white;
-    width: 100vw;
-    height: 0;
-    bottom: 0;
-    position: absolute;
-}
-
-.subtle-rainbow-bg .v {
-    box-shadow: 0 0 35vw 25vw white;
-    width: 0;
-    height: 100vh;
-    bottom: 0;
-    left: 0;
-    position: absolute;
+@keyframes fall-down {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0;
+  }
 }
