@@ -1,13 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+/* AJOUT : Police "Amour" pour les titres */
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* --- SYSTÈME DE DESIGN NÉO-BRUTALISTE --- */
 @layer base {
   :root {
-    /* ... tes variables existantes ... */
     --background: 0 0% 100%;
     --foreground: 0 0% 5%;
     --card: 0 0% 100%;
@@ -27,7 +27,7 @@
     --ring: 0 0% 0%;
     --radius: 0px;
 
-    /* Mood Colors */
+    /* Mood Colors - Soft Pastel Palette */
     --mood-1: 0 93% 88%;      
     --mood-2: 27 98% 83%;     
     --mood-3: 53 98% 77%;     
@@ -39,27 +39,71 @@
     --shadow-brutal-lg: 6px 6px 0px 0px rgba(0, 0, 0, 1);
   }
 
-  /* --- THÈME SAINT-VALENTIN --- */
+  /* --- THÈME SAINT-VALENTIN (MODE GRAND JEU) --- */
   .valentine-theme {
-    --background: 350 100% 98%;
-    --foreground: 345 80% 20%;
+    /* Fond rose pâle avec motif défini plus bas */
+    --background: 350 100% 97%; 
+    --foreground: 345 100% 15%; /* Texte rouge foncé, pas noir */
+    
     --card: 0 0% 100%;
-    --border: 345 60% 80%;
-    --primary: 345 90% 50%;
+    --card-foreground: 345 90% 25%;
+    
+    /* LES BORDURES DEVIENNENT ROUGES ! */
+    --border: 345 90% 60%; 
+    --input: 350 100% 95%;
+    
+    --primary: 345 100% 50%;     /* Rouge Amour Vif */
     --primary-foreground: 0 0% 100%;
+
     --muted: 340 50% 95%;
-    --muted-foreground: 345 40% 40%;
-    --mood-1: 0 0% 20%;
-    --mood-2: 340 60% 80%;
-    --mood-3: 345 80% 70%;
-    --mood-4: 350 85% 60%;
-    --mood-5: 355 90% 50%;
+    --muted-foreground: 345 60% 50%;
+
+    /* Palette Mood Spéciale (Dégradé de Passion) */
+    --mood-1: 0 0% 40%;         /* Gris Triste */
+    --mood-2: 340 70% 90%;      /* Rose Poudre */
+    --mood-3: 345 80% 80%;      /* Rose Bonbon */
+    --mood-4: 350 90% 70%;      /* Rouge Tango */
+    --mood-5: 355 100% 60%;     /* Rouge Passion */
+
+    /* OMBRES ROSES/ROUGES (Le détail qui change tout) */
+    --shadow-brutal: 4px 4px 0px 0px #ff4d6d;
+    --shadow-brutal-sm: 2px 2px 0px 0px #ff4d6d;
+    --shadow-brutal-lg: 6px 6px 0px 0px #ff4d6d;
+  }
+
+  /* Modification globale du corps pour le thème */
+  body.valentine-theme {
+    background-image: radial-gradient(#ff8fa3 1.5px, transparent 1.5px);
+    background-size: 24px 24px; /* Motif petits pois */
+  }
+
+  /* Changement de police pour les titres en mode Valentin */
+  .valentine-theme h1, 
+  .valentine-theme h2, 
+  .valentine-theme h3,
+  .valentine-theme .font-black {
+    font-family: 'Pacifico', cursive !important;
+    font-weight: 400; /* Pacifico est déjà gras visuellement */
+    letter-spacing: 1px;
+  }
+
+  .dark {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 8%;
+    --border: 0 0% 100%;
+  }
+
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Space Grotesk', sans-serif;
   }
 }
 
 @layer components {
   .card-brutal {
-    @apply bg-card border border-border;
+    @apply bg-card border-2 border-border; /* Bordure plus épaisse */
     box-shadow: var(--shadow-brutal);
     transition: all 0.15s ease;
   }
@@ -67,15 +111,15 @@
     box-shadow: var(--shadow-brutal-lg);
     transform: translate(-2px, -2px);
   }
+  
   .pixel-cell {
     @apply border border-border cursor-pointer transition-all duration-150;
     box-shadow: var(--shadow-brutal-sm);
   }
 
-  /* --- LE CODE MANQUANT POUR LES CŒURS --- */
+  /* Forme Cœur (optionnelle si tu veux la remettre un jour) */
   .pixel-heart {
     @apply cursor-pointer transition-all duration-300;
-    /* Version encodée (plus sûre) */
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
     mask-size: 85%;
     mask-repeat: no-repeat;
@@ -91,13 +135,18 @@
   .mood-5 { background-color: hsl(var(--mood-5)); }
   
   .btn-brutal {
-    @apply px-4 py-2 font-semibold border border-border bg-card text-foreground;
+    @apply px-4 py-2 font-semibold border-2 border-border bg-card text-foreground;
     box-shadow: var(--shadow-brutal);
     transition: all 0.15s ease;
   }
+  
+  /* Bouton spécial thème Valentin */
+  .valentine-theme .btn-brutal {
+    border-radius: 999px; /* Boutons arrondis uniquement pour la St Valentin */
+  }
 }
 
-/* --- ANIMATION PLUIE DE CŒURS --- */
+/* ANIMATIONS */
 .hearts-container {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none; z-index: 9999; overflow: hidden;
@@ -108,11 +157,4 @@
 @keyframes fall-down {
   0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
   100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
-}
-
-/* --- ANIMATION PÉTALE --- */
-.petal-fall { animation: petal-fall-animation 1.5s ease-in forwards; }
-@keyframes petal-fall-animation {
-  0% { transform: translateY(0) rotate(0); opacity: 1; }
-  100% { transform: translateY(500px) rotate(90deg); opacity: 0; }
 }
