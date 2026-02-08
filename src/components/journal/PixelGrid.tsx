@@ -34,13 +34,6 @@ const moodColorClasses: Record<number, string> = {
 };
 
 export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) {
-  // --- ACTIVATION DES CŒURS ---
-  const isValentineWeek = useMemo(() => {
-    const today = new Date();
-    // J'ai mis 8 au lieu de 9 pour que tu puisses tester aujourd'hui !
-    return today.getMonth() === 1 && today.getDate() >= 8 && today.getDate() <= 15;
-  }, []);
-
   const days = useMemo(() => {
     const baseDate = isValid(currentDate) ? currentDate : new Date();
     return eachDayOfInterval({
@@ -71,6 +64,7 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
 
       {/* Grille des pixels */}
       <div className="grid grid-cols-7 gap-2">
+        {/* Espaces vides pour décaler le premier jour du mois */}
         {days.length > 0 && Array.from({ length: getDay(days[0]) }).map((_, i) => (
           <div key={`empty-${i}`} className="aspect-square" />
         ))}
@@ -81,9 +75,8 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
           const isToday = isSameDay(day, new Date());
           const score = entry?.mood_score ? Number(entry.mood_score) : null;
           
-          // Si St Valentin, on applique une couleur de texte (currentColor) pour le masque SVG
-          // Sinon on met le fond blanc classique
-          const colorClass = score ? moodColorClasses[score] : (isValentineWeek ? "text-gray-200" : "bg-white");
+          // Logique simple : couleur du mood ou blanc par défaut
+          const colorClass = score ? moodColorClasses[score] : "bg-white";
 
           return (
             <motion.button
@@ -92,18 +85,13 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
               whileTap={{ scale: 0.9 }}
               onClick={() => onDayClick(day, entry)}
               className={cn(
-                "aspect-square flex items-center justify-center relative transition-all",
-                // C'est ICI que la magie opère : si isValentineWeek est vrai, on met des cœurs
-                isValentineWeek ? "pixel-heart" : "pixel-cell",
+                "pixel-cell aspect-square flex items-center justify-center relative transition-all border-2 border-black/5",
                 colorClass,
-                isToday && !isValentineWeek && "ring-4 ring-orange-500 ring-inset z-10"
+                // Bordure orange pour aujourd'hui
+                isToday && "ring-4 ring-orange-500 ring-inset z-10"
               )}
             >
-              <span className={cn(
-                "text-[10px] font-black uppercase pointer-events-none",
-                // On cache les numéros dans les cœurs pour que ce soit plus joli
-                isValentineWeek ? "hidden" : ""
-              )}>
+              <span className="text-[10px] font-black uppercase pointer-events-none">
                 {format(day, "d")}
               </span>
             </motion.button>

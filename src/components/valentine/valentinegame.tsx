@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState } from "react";
-import { X, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Confetti from "react-confetti"; 
 
@@ -115,16 +114,14 @@ export function ScratchGame() {
           <X className="w-6 h-6" />
         </button>
         <div className="text-center mb-4 mt-2">
-            <h2 className="text-2xl font-black uppercase text-pink-600">Ticket Surprise 💖</h2>
+            <h2 className="text-2xl font-black uppercase text-pink-600">Veux-tu être ma valentine ? 💖</h2>
             <p className="text-xs font-mono uppercase text-gray-500">GRATTE LA ZONE CI-DESSOUS</p>
         </div>
         <div ref={containerRef} className="relative w-full h-64 border-2 border-black bg-yellow-100 overflow-hidden cursor-crosshair">
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none">
-            <Trophy className="w-12 h-12 text-yellow-500 mb-2 animate-bounce" />
-            <h3 className="text-3xl font-black uppercase text-red-500 mb-2 transform -rotate-2">GAGNÉ !</h3>
-            <p className="text-lg font-bold">Tu as gagné mon ❤️ pour l'éternité.</p>
-            <p className="mt-2 text-sm font-mono bg-white px-2 py-1 border border-black">Code promo: JE T'AIME</p>
-            <button onClick={() => setIsOpen(false)} className="mt-4 btn-brutal bg-black text-white px-6 py-2 text-sm">RÉCLAMER MON CADEAU</button>
+            <h3 className="text-3xl font-black uppercase text-red-500 mb-2 transform -rotate-2">T'as pas le choix !</h3>
+            <p className="text-lg font-bold">❤️</p>
+            <button onClick={() => setIsOpen(false)} className="mt-4 btn-brutal bg-black text-white px-6 py-2 text-sm">J'accepte mon sort</button>
           </div>
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full transition-opacity duration-700 ease-out z-10" />
         </div>
