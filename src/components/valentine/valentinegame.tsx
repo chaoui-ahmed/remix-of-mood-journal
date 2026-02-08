@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import Confetti from "react-confetti"; 
+// J'ai supprimé l'import de Confetti qui causait l'erreur
 
 export function ScratchGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -11,10 +11,10 @@ export function ScratchGame() {
 
   useEffect(() => {
     const today = new Date();
-    // DATE MISE À JOUR : Active du 8 au 15 Février
+    // Active du 8 au 15 Février
     const isValentineWeek = today.getMonth() === 1 && today.getDate() >= 8 && today.getDate() <= 15;
     
-    // Si on est dans la semaine, on ouvre le jeu !
+    // On enlève la vérification du localStorage pour que tu puisses tester
     if (isValentineWeek) {
        setIsOpen(true);
     }
