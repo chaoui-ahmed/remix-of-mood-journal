@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
+import { X } from "lucide-react"; // Correction : Ajout de l'import X manquant
 import { cn } from "@/lib/utils";
-// J'ai supprimé l'import de Confetti qui causait l'erreur
 
 export function ScratchGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -108,7 +108,7 @@ export function ScratchGame() {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in zoom-in duration-300">
-      {isRevealed && <Confetti numberOfPieces={200} recycle={false} />}
+      {/* Correction: J'ai retiré <Confetti ... /> ici car l'import n'existe pas */}
       <div className="bg-white p-2 card-brutal max-w-md w-full relative">
         <button onClick={() => setIsOpen(false)} className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 border-2 border-black shadow-brutal-sm z-50">
           <X className="w-6 h-6" />
@@ -119,6 +119,7 @@ export function ScratchGame() {
         </div>
         <div ref={containerRef} className="relative w-full h-64 border-2 border-black bg-yellow-100 overflow-hidden cursor-crosshair">
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none">
+            {/* J'ai retiré le Trophy ici comme demandé */}
             <h3 className="text-3xl font-black uppercase text-red-500 mb-2 transform -rotate-2">T'as pas le choix !</h3>
             <p className="text-lg font-bold">❤️</p>
             <button onClick={() => setIsOpen(false)} className="mt-4 btn-brutal bg-black text-white px-6 py-2 text-sm">J'accepte mon sort</button>
