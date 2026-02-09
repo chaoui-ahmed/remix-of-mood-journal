@@ -9,7 +9,7 @@ import { PixelGrid } from "@/components/journal/PixelGrid";
 import { EntryCard } from "@/components/journal/EntryCard";
 import { useEntries } from "@/hooks/useEntries";
 import { Button } from "@/components/ui/button";
-import { ValentineGame } from "@/components/valentine/valentinegame.tsx"; // AJOUT ICI
+import { ScratchGame } from "@/components/valentine/ScratchGame"; // NOUVEL IMPORT
 
 export default function Index() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -35,8 +35,8 @@ export default function Index() {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* AJOUT DU JEU ICI - Il ne s'affichera que si la logique dans le composant le décide */}
-      <ValentineGame />
+      {/* JEU DE GRATTAGE */}
+      <ScratchGame />
       
       <PageTransition>
         <main className="container mx-auto px-4 py-8">
