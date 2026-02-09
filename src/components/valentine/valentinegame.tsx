@@ -16,8 +16,8 @@ export function ScratchGame() {
     const isValentineWeek = today.getMonth() === 1 && today.getDate() >= 9 && today.getDate() <= 15;
     const hasPlayed = localStorage.getItem("scratch_card_played");
 
-    if (isValentineWeek && !hasPlayed) {
-      setIsOpen(true);
+if (isValentineWeek) { setIsOpen(true); }
+    //  setIsOpen(true);
     }
     // Pour tester tout de suite, décommente la ligne ci-dessous :
     // setIsOpen(true); 

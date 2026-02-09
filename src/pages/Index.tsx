@@ -9,7 +9,7 @@ import { PixelGrid } from "@/components/journal/PixelGrid";
 import { EntryCard } from "@/components/journal/EntryCard";
 import { useEntries } from "@/hooks/useEntries";
 import { Button } from "@/components/ui/button";
-import { ScratchGame } from "@/components/valentine/ScratchGame"; // NOUVEL IMPORT
+import { ScratchGame } from "@/components/valentine/valentinegame.tsx"; // NOUVEL IMPORT
 
 export default function Index() {
   const [currentDate, setCurrentDate] = useState(new Date());

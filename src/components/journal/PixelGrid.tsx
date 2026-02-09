@@ -38,7 +38,7 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
   const isValentineWeek = useMemo(() => {
     const today = new Date();
     // J'ai mis 8 au lieu de 9 pour que tu puisses tester aujourd'hui !
-    return today.getMonth() === 1 && today.getDate() > 8 && today.getDate() <= 15;
+    return today.getMonth() === 1 && today.getDate() >= 8 && today.getDate() <= 15;
   }, []);
 
   const days = useMemo(() => {
