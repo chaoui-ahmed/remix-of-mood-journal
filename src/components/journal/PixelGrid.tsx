@@ -34,10 +34,11 @@ const moodColorClasses: Record<number, string> = {
 };
 
 export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) {
-  // Détection de la semaine de la St Valentin (9-15 Février)
+  // --- ACTIVATION DES CŒURS ---
   const isValentineWeek = useMemo(() => {
     const today = new Date();
-    return today.getMonth() === 1 && today.getDate() >= 9 && today.getDate() <= 15;
+    // J'ai mis 8 au lieu de 9 pour que tu puisses tester aujourd'hui !
+    return today.getMonth() === 1 && today.getDate() > 8 && today.getDate() <= 15;
   }, []);
 
   const days = useMemo(() => {
@@ -80,7 +81,8 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
           const isToday = isSameDay(day, new Date());
           const score = entry?.mood_score ? Number(entry.mood_score) : null;
           
-          // Si St Valentin, on force la couleur spécifique via CSS (currentColor) sinon bg-white par défaut
+          // Si St Valentin, on applique une couleur de texte (currentColor) pour le masque SVG
+          // Sinon on met le fond blanc classique
           const colorClass = score ? moodColorClasses[score] : (isValentineWeek ? "text-gray-200" : "bg-white");
 
           return (
@@ -91,16 +93,15 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
               onClick={() => onDayClick(day, entry)}
               className={cn(
                 "aspect-square flex items-center justify-center relative transition-all",
-                // Si Valentin -> Forme coeur, Sinon -> Carré brutal
+                // C'est ICI que la magie opère : si isValentineWeek est vrai, on met des cœurs
                 isValentineWeek ? "pixel-heart" : "pixel-cell",
                 colorClass,
-                // Bordure orange pour aujourd'hui (sauf si mode coeur actif pour ne pas casser la forme)
                 isToday && !isValentineWeek && "ring-4 ring-orange-500 ring-inset z-10"
               )}
             >
-              {/* Le numéro du jour est caché en mode coeur pour un effet "Mer de coeurs" plus pur */}
               <span className={cn(
                 "text-[10px] font-black uppercase pointer-events-none",
+                // On cache les numéros dans les cœurs pour que ce soit plus joli
                 isValentineWeek ? "hidden" : ""
               )}>
                 {format(day, "d")}

@@ -5,9 +5,9 @@
 @tailwind utilities;
 
 /* --- SYSTÈME DE DESIGN NÉO-BRUTALISTE --- */
-
 @layer base {
   :root {
+    /* ... tes variables existantes ... */
     --background: 0 0% 100%;
     --foreground: 0 0% 5%;
     --card: 0 0% 100%;
@@ -27,7 +27,7 @@
     --ring: 0 0% 0%;
     --radius: 0px;
 
-    /* Mood Colors - Soft Pastel Palette (Par défaut) */
+    /* Mood Colors */
     --mood-1: 0 93% 88%;      
     --mood-2: 27 98% 83%;     
     --mood-3: 53 98% 77%;     
@@ -39,39 +39,21 @@
     --shadow-brutal-lg: 6px 6px 0px 0px rgba(0, 0, 0, 1);
   }
 
-  /* --- THÈME SAINT-VALENTIN (Surcharge les variables ci-dessus) --- */
+  /* --- THÈME SAINT-VALENTIN --- */
   .valentine-theme {
-    --background: 350 100% 98%; /* Fond très rose pâle */
-    --foreground: 345 80% 20%;  /* Texte rouge foncé */
-    
+    --background: 350 100% 98%;
+    --foreground: 345 80% 20%;
     --card: 0 0% 100%;
-    --border: 345 60% 80%;      /* Bordures rosées */
-    
-    --primary: 345 90% 50%;     /* Rouge Amour */
+    --border: 345 60% 80%;
+    --primary: 345 90% 50%;
     --primary-foreground: 0 0% 100%;
-
     --muted: 340 50% 95%;
     --muted-foreground: 345 40% 40%;
-
-    /* Palette Mood Spéciale St Valentin (Dégradé de Rouge/Rose) */
-    --mood-1: 0 0% 20%;         /* Noir/Gris (Cœur brisé) */
-    --mood-2: 340 60% 80%;      /* Rose pâle */
-    --mood-3: 345 80% 70%;      /* Rose bonbon */
-    --mood-4: 350 85% 60%;      /* Rouge clair */
-    --mood-5: 355 90% 50%;      /* Rouge passion */
-  }
-
-  .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 8%;
-    --border: 0 0% 100%;
-  }
-
-  * { @apply border-border; }
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Space Grotesk', sans-serif;
+    --mood-1: 0 0% 20%;
+    --mood-2: 340 60% 80%;
+    --mood-3: 345 80% 70%;
+    --mood-4: 350 85% 60%;
+    --mood-5: 355 90% 50%;
   }
 }
 
@@ -85,25 +67,22 @@
     box-shadow: var(--shadow-brutal-lg);
     transform: translate(-2px, -2px);
   }
-  
   .pixel-cell {
     @apply border border-border cursor-pointer transition-all duration-150;
     box-shadow: var(--shadow-brutal-sm);
   }
 
-  /* AJOUT : Forme de Coeur pour la Grille (via Masking) */
+  /* --- LE CODE MANQUANT POUR LES CŒURS --- */
   .pixel-heart {
     @apply cursor-pointer transition-all duration-300;
     mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
     mask-size: 85%;
     mask-repeat: no-repeat;
     mask-position: center;
-    /* On retire les bordures/ombres car le masque coupe tout ce qui dépasse */
     border: none !important;
     box-shadow: none !important;
   }
 
-  /* Les classes mood utilisent les variables CSS */
   .mood-1 { background-color: hsl(var(--mood-1)); }
   .mood-2 { background-color: hsl(var(--mood-2)); }
   .mood-3 { background-color: hsl(var(--mood-3)); }
@@ -117,40 +96,21 @@
   }
 }
 
-/* --- ANIMATION PLUIE DE CŒURS (ThemeLoader) --- */
+/* --- ANIMATION PLUIE DE CŒURS --- */
 .hearts-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 9999; overflow: hidden;
 }
-
 .heart-falling {
-  position: absolute;
-  top: -10%;
-  animation: fall-down linear forwards;
+  position: absolute; top: -10%; animation: fall-down linear forwards;
 }
-
 @keyframes fall-down {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(110vh) rotate(360deg);
-    opacity: 0;
-  }
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
 }
 
-/* AJOUT : Animation Pétale (ValentineGame) */
-.petal-fall {
-  animation: petal-fall-animation 1.5s ease-in forwards;
-}
-
+/* --- ANIMATION PÉTALE --- */
+.petal-fall { animation: petal-fall-animation 1.5s ease-in forwards; }
 @keyframes petal-fall-animation {
   0% { transform: translateY(0) rotate(0); opacity: 1; }
   100% { transform: translateY(500px) rotate(90deg); opacity: 0; }
