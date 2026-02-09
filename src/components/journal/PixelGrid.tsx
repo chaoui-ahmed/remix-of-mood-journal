@@ -25,10 +25,8 @@ interface PixelGridProps {
 
 const weekDays = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
-// ✅ SOLUTION : On définit les classes explicitement ici.
-// Ainsi, Tailwind "voit" les chaînes de caractères complètes et ne les supprime pas.
 const moodColorClasses: Record<number, string> = {
-  1: "bg-mood-1", // Utilise les couleurs définies dans tailwind.config
+  1: "bg-mood-1",
   2: "bg-mood-2",
   3: "bg-mood-3",
   4: "bg-mood-4",
@@ -36,7 +34,12 @@ const moodColorClasses: Record<number, string> = {
 };
 
 export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) {
-  // 1. Calcul des jours du mois
+  // Détection de la semaine de la St Valentin (9-15 Février)
+  const isValentineWeek = useMemo(() => {
+    const today = new Date();
+    return today.getMonth() === 1 && today.getDate() >= 9 && today.getDate() <= 15;
+  }, []);
+
   const days = useMemo(() => {
     const baseDate = isValid(currentDate) ? currentDate : new Date();
     return eachDayOfInterval({
@@ -45,7 +48,6 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
     });
   }, [currentDate]);
 
-  // 2. Map des entrées pour un accès rapide par date
   const entryMap = useMemo(() => {
     const map = new Map<string, Entry>();
     entries.forEach((entry) => {
@@ -57,7 +59,7 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
 
   return (
     <div className="w-full">
-      {/* Grille des jours de la semaine */}
+      {/* En-tête des jours */}
       <div className="grid grid-cols-7 gap-2 mb-4">
         {weekDays.map(day => (
           <div key={day} className="text-[12px] font-black text-center uppercase tracking-tighter">
@@ -68,20 +70,18 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
 
       {/* Grille des pixels */}
       <div className="grid grid-cols-7 gap-2">
-        {/* Espaces vides pour décaler le premier jour du mois */}
         {days.length > 0 && Array.from({ length: getDay(days[0]) }).map((_, i) => (
           <div key={`empty-${i}`} className="aspect-square" />
         ))}
 
-        {/* Affichage de chaque jour */}
         {days.map((day) => {
           const dateKey = format(day, "yyyy-MM-dd");
           const entry = entryMap.get(dateKey);
           const isToday = isSameDay(day, new Date());
           const score = entry?.mood_score ? Number(entry.mood_score) : null;
-
-          // Récupération de la classe via la Map sécurisée
-          const colorClass = score ? moodColorClasses[score] : "bg-white";
+          
+          // Si St Valentin, on force la couleur spécifique via CSS (currentColor) sinon bg-white par défaut
+          const colorClass = score ? moodColorClasses[score] : (isValentineWeek ? "text-gray-200" : "bg-white");
 
           return (
             <motion.button
@@ -90,13 +90,19 @@ export function PixelGrid({ entries, currentDate, onDayClick }: PixelGridProps) 
               whileTap={{ scale: 0.9 }}
               onClick={() => onDayClick(day, entry)}
               className={cn(
-                "pixel-cell aspect-square flex items-center justify-center relative transition-colors",
-                colorClass, // ✅ Application de la classe valide
-                // Bordure orange pour aujourd'hui
-                isToday && "ring-4 ring-orange-500 ring-inset z-10"
+                "aspect-square flex items-center justify-center relative transition-all",
+                // Si Valentin -> Forme coeur, Sinon -> Carré brutal
+                isValentineWeek ? "pixel-heart" : "pixel-cell",
+                colorClass,
+                // Bordure orange pour aujourd'hui (sauf si mode coeur actif pour ne pas casser la forme)
+                isToday && !isValentineWeek && "ring-4 ring-orange-500 ring-inset z-10"
               )}
             >
-              <span className="text-[10px] font-black uppercase pointer-events-none">
+              {/* Le numéro du jour est caché en mode coeur pour un effet "Mer de coeurs" plus pur */}
+              <span className={cn(
+                "text-[10px] font-black uppercase pointer-events-none",
+                isValentineWeek ? "hidden" : ""
+              )}>
                 {format(day, "d")}
               </span>
             </motion.button>

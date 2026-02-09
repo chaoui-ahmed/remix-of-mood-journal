@@ -5,25 +5,22 @@ import { format, addMonths, subMonths } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { PixelGrid } from "@/components/journal/PixelGrid"; // Assurez-vous que l'import est bon
+import { PixelGrid } from "@/components/journal/PixelGrid"; 
 import { EntryCard } from "@/components/journal/EntryCard";
 import { useEntries } from "@/hooks/useEntries";
 import { Button } from "@/components/ui/button";
+import { ValentineGame } from "@/components/valentine/ValentineGame"; // AJOUT ICI
 
 export default function Index() {
-  // État du mois affiché
   const [currentDate, setCurrentDate] = useState(new Date());
   
-  // On récupère les données (on peut filtrer par année si le hook le permet, sinon on prend tout)
   const { data: entries = [], isLoading } = useEntries(); 
   const navigate = useNavigate();
 
-  // Navigation mois précédent / suivant
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const isFuture = addMonths(currentDate, 1) > new Date();
 
-  // Clic sur un jour
   const handleDayClick = (date: Date, entry?: { id: string }) => {
     if (entry) {
       navigate(`/entry/${entry.id}`);
@@ -37,19 +34,22 @@ export default function Index() {
   return (
     <div className="min-h-screen">
       <Navigation />
+      
+      {/* AJOUT DU JEU ICI - Il ne s'affichera que si la logique dans le composant le décide */}
+      <ValentineGame />
+      
       <PageTransition>
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8 text-center md:text-left">
             <h1 className="text-4xl font-extrabold text-orange-500 mb-2">
               Mes Pixels ✨
             </h1>
-            <p className="text-muted-foreground font-medium italic">
-               ✨✨✨✨✨<p className="text-muted-foreground mb-8">Bon courage pour demain ❤️❤ ❤️</p>
-            </p>
+            <div className="text-muted-foreground font-medium italic mb-8">
+               ✨✨✨✨✨ <p>Bon courage pour demain ❤️ ❤️ ❤️</p>
+            </div>
           </div>
           
           <div className="bg-card/50 backdrop-blur-sm border border-white/20 shadow-brutal p-6 mb-8 rounded-3xl">
-            {/* Header du Calendrier avec Flèches */}
             <div className="flex items-center justify-between mb-6">
               <Button variant="ghost" size="icon" onClick={prevMonth} className="hover:bg-white/50 rounded-full">
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
@@ -67,7 +67,6 @@ export default function Index() {
             {isLoading ? (
               <div className="h-64 flex items-center justify-center text-muted-foreground">Chargement...</div>
             ) : (
-              // ✅ CONNEXION CRITIQUE : On passe 'currentDate' ici
               <PixelGrid 
                 entries={entries} 
                 currentDate={currentDate} 
