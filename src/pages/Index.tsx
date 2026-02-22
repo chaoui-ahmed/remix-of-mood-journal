@@ -45,7 +45,7 @@ export default function Index() {
               Mes Pixels ✨
             </h1>
             <div className="text-muted-foreground font-medium italic mb-8">
-               ✨✨✨✨✨ <p className="text-muted-foreground mb-8">love youu</p>
+               ✨✨✨✨✨ <p className="text-muted-foreground mb-8">⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔</p>
             </div>
           </div>
           
