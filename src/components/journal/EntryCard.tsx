@@ -107,7 +107,6 @@ export function EntryCard({ entry, onClick }: EntryCardProps) {
         {entry.content || "Contenu vide..."}
       </p>
 
-      // Remplacer l'ancien affichage par ceci dans le composant EntryCard :
 
       {/* Affichage des images */}
       {entry.google_photos_ids && entry.google_photos_ids.length > 0 && (
