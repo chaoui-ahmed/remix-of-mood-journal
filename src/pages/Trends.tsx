@@ -1,27 +1,26 @@
 import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { getDay, isValid, subDays, subMonths, subYears, isAfter } from "date-fns";
-import { Search, Calendar, Filter } from "lucide-react";
+import { Search, Calendar, Filter, List } from "lucide-react";
 import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { useEntries } from "@/hooks/useEntries";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+// ATTENTION : Assure-toi que ce chemin correspond bien à l'endroit où se trouve ton EntryCard
+import { EntryCard } from "@/components/journal/EntryCard"; 
 
 const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 const moodColors = ["#FECACA", "#FED7AA", "#FEF08A", "#BBF7D0", "#E9D5FF"];
 
-// Définition des types pour les filtres
 type Period = "all" | "week" | "month" | "year";
 
 export default function Trends() {
   const { data: entries = [], isLoading } = useEntries();
   
-  // États pour les filtres
   const [period, setPeriod] = useState<Period>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 1. Filtrage des données (Coeur de la logique)
+  // 1. Filtrage des données (Tags + Texte)
   const filteredEntries = useMemo(() => {
     let data = entries;
     const now = new Date();
@@ -39,18 +38,31 @@ export default function Trends() {
       });
     }
 
-    // Filtre par Hashtag
+    // Filtre par Recherche (Hashtag OU Texte simple)
     if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase().replace("#", "");
-      data = data.filter(entry => 
-        entry.hashtags?.some(tag => tag.toLowerCase().includes(term))
-      );
+      const term = searchTerm.toLowerCase();
+      const isTagSearch = term.startsWith("#");
+      const cleanTerm = term.replace("#", ""); // On enlève le # pour la recherche de tag
+
+      data = data.filter(entry => {
+        // Recherche dans les tags
+        const matchTag = entry.hashtags?.some((tag: string) => tag.toLowerCase().includes(cleanTerm));
+        
+        // Si l'utilisateur a tapé explicitement "#", on ne cherche que dans les tags
+        if (isTagSearch) return matchTag;
+
+        // Recherche dans le texte (On suppose que ta colonne s'appelle 'notes' ou 'content' dans la DB)
+        const textContent = (entry.notes || entry.content || "").toLowerCase();
+        const matchText = textContent.includes(term);
+
+        return matchTag || matchText;
+      });
     }
 
     return data;
   }, [entries, period, searchTerm]);
 
-  // 2. Calcul des stats par jour (sur les données filtrées)
+  // 2. Calcul des stats par jour
   const weekdayData = useMemo(() => {
     const totals: Record<number, { sum: number; count: number }> = {};
     for (let i = 0; i < 7; i++) totals[i] = { sum: 0, count: 0 };
@@ -85,8 +97,7 @@ export default function Trends() {
   };
 
   return (
-    // ❌ PAS de bg-background ici, pour laisser voir la couleur personnalisée
-    <div className="min-h-screen"> 
+    <div className="min-h-screen pb-20"> 
       <Navigation />
       <PageTransition>
         <main className="container mx-auto px-4 py-8 max-w-4xl">
@@ -96,20 +107,20 @@ export default function Trends() {
               <p className="text-muted-foreground">Tes statistiques en temps réel</p>
             </div>
             
-            {/* Barre de Recherche Hashtag */}
-            <div className="relative w-full md:w-64">
+            {/* Barre de Recherche Améliorée */}
+            <div className="relative w-full md:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
-                placeholder="Chercher un #tag..." 
+                placeholder="Chercher un mot ou un #tag..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-white/50 backdrop-blur-sm"
+                className="pl-9 bg-white/50 backdrop-blur-sm border-2 border-black shadow-brutal-sm"
               />
             </div>
           </div>
 
           {/* Filtres de Période */}
-          <div className="flex flex-wrap gap-2 mb-8 bg-card/80 p-2 rounded-lg border border-border w-fit shadow-sm">
+          <div className="flex flex-wrap gap-2 mb-8 bg-card/80 p-2 rounded-lg border-2 border-black w-fit shadow-brutal-sm">
             {[
               { id: "week", label: "7 Jours" },
               { id: "month", label: "Mois" },
@@ -119,10 +130,10 @@ export default function Trends() {
               <button
                 key={filter.id}
                 onClick={() => setPeriod(filter.id as Period)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all border-2 ${
                   period === filter.id 
-                    ? "bg-primary text-primary-foreground shadow-sm" 
-                    : "hover:bg-secondary text-muted-foreground"
+                    ? "bg-black text-white border-black" 
+                    : "bg-white text-black border-transparent hover:border-black"
                 }`}
               >
                 {filter.label}
@@ -132,24 +143,24 @@ export default function Trends() {
 
           {/* Cartes de Stats */}
           <div className="grid gap-6 md:grid-cols-3 mb-8">
-            <div className="bg-card/90 border border-border shadow-brutal p-6 rounded-xl backdrop-blur-sm">
+            <div className="bg-card border-2 border-black shadow-brutal p-6 rounded-xl">
               <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Filter className="w-4 h-4" />
-                <p className="text-xs font-bold uppercase tracking-wider">Entrées</p>
+                <Filter className="w-4 h-4 text-black" />
+                <p className="text-xs font-bold uppercase tracking-wider text-black">Entrées</p>
               </div>
               <p className="text-4xl font-black">{filteredEntries.length}</p>
             </div>
 
-            <div className="bg-card/90 border border-border shadow-brutal p-6 rounded-xl backdrop-blur-sm">
+            <div className="bg-card border-2 border-black shadow-brutal p-6 rounded-xl">
                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Calendar className="w-4 h-4" />
-                <p className="text-xs font-bold uppercase tracking-wider">Moyenne</p>
+                <Calendar className="w-4 h-4 text-black" />
+                <p className="text-xs font-bold uppercase tracking-wider text-black">Moyenne</p>
               </div>
               <p className="text-4xl font-black">{overallAverage.toFixed(1)}<span className="text-lg text-muted-foreground font-normal">/5</span></p>
             </div>
 
             <div 
-              className="bg-card border border-border shadow-brutal p-6 rounded-xl transition-colors duration-500" 
+              className="bg-card border-2 border-black shadow-brutal p-6 rounded-xl transition-colors duration-500" 
               style={{ backgroundColor: getMoodColor(overallAverage) }}
             >
               <p className="text-xs font-bold uppercase tracking-wider text-black/60 mb-2">Dominante</p>
@@ -160,27 +171,27 @@ export default function Trends() {
           </div>
 
           {/* Graphique */}
-          <div className="bg-card/90 border border-border shadow-brutal p-6 rounded-xl backdrop-blur-sm">
+          <div className="bg-white border-2 border-black shadow-brutal p-6 rounded-xl mb-12">
             <h2 className="text-xl font-bold mb-6">Humeur par jour</h2>
             {isLoading ? (
-              <div className="h-64 flex items-center justify-center text-muted-foreground">Chargement...</div>
+              <div className="h-64 flex items-center justify-center font-bold">Chargement...</div>
             ) : filteredEntries.length === 0 ? (
               <div className="h-64 flex flex-col items-center justify-center text-muted-foreground gap-2">
-                <p>Aucune donnée pour cette période 🤷‍♂️</p>
-                {searchTerm && <p className="text-sm">Essaie un autre hashtag !</p>}
+                <p className="font-bold">Aucune donnée pour cette recherche 🤷‍♂️</p>
+                {searchTerm && <p className="text-sm">Essaie un autre mot ou hashtag !</p>}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={weekdayData}>
-                  <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                  <YAxis domain={[0, 5]} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontWeight: 'bold' }} />
+                  <YAxis domain={[0, 5]} tickLine={false} axisLine={false} tick={{ fontWeight: 'bold' }} />
                   <Tooltip
                     cursor={{ fill: 'transparent' }}
                     content={({ active, payload }) => {
                       if (active && payload?.length) {
                         const data = payload[0].payload;
                         return (
-                          <div className="bg-white border-2 border-black shadow-brutal p-3 rounded-lg">
+                          <div className="bg-white border-2 border-black shadow-brutal-sm p-3 rounded-lg">
                             <p className="font-bold mb-1">{data.day}</p>
                             <p className="text-sm">Moyenne: <span className="font-bold">{data.average.toFixed(1)}</span></p>
                             <p className="text-xs text-muted-foreground">{data.count} entrées</p>
@@ -196,7 +207,7 @@ export default function Trends() {
                         key={`cell-${index}`} 
                         fill={getMoodColor(entry.average || 3)} 
                         stroke="black" 
-                        strokeWidth={1}
+                        strokeWidth={2}
                       />
                     ))}
                   </Bar>
@@ -204,6 +215,32 @@ export default function Trends() {
               </ResponsiveContainer>
             )}
           </div>
+
+          {/* NOUVEAU : Liste des entrées correspondantes */}
+          <div>
+            <div className="flex items-center gap-2 mb-6 border-b-2 border-black pb-2">
+              <List className="w-6 h-6" />
+              <h2 className="text-2xl font-black">
+                Résultats de recherche ({filteredEntries.length})
+              </h2>
+            </div>
+
+            {filteredEntries.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* On trie du plus récent au plus ancien avant d'afficher */}
+                {[...filteredEntries]
+                  .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+                  .map(entry => (
+                    <EntryCard key={entry.id} entry={entry} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-12 bg-gray-50 border-2 border-black border-dashed rounded-xl">
+                <p className="font-bold text-gray-500">Aucun pixel à afficher pour le moment.</p>
+              </div>
+            )}
+          </div>
+
         </main>
       </PageTransition>
     </div>
