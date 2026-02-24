@@ -29,23 +29,21 @@ export function useAuth() {
 
   // --- NOUVELLE FONCTION : Connexion avec Google (et permissions Photos) ---
   // Dans src/hooks/useAuth.t
-const signInWithGoogle = async () => {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      // On demande les scopes standards + Photos
-      scopes: 'email profile https://www.googleapis.com/auth/photoslibrary.readonly',
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent', // Force l'apparition de l'écran de sélection des permissions
-        // On renforce la demande de scope ici aussi
-        scope: 'email profile https://www.googleapis.com/auth/photoslibrary.readonly',
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // NOUVEAU : On demande les DEUX scopes (Picker + Readonly)
+        scopes: 'https://www.googleapis.com/auth/photoslibrary.readonly https://www.googleapis.com/auth/photospicker.mediaitems.readonly',
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+        redirectTo: `${window.location.origin}/`,
       },
-      redirectTo: `${window.location.origin}/`,
-    },
-  });
-  return { error };
-};
+    });
+    return { error };
+  };
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;

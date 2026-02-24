@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Check, Image as ImageIcon } from "lucide-react";
+import { X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface GooglePhotoPickerProps {
@@ -10,51 +10,91 @@ interface GooglePhotoPickerProps {
 }
 
 export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: GooglePhotoPickerProps) {
-  const [photos, setPhotos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      fetchPhotos();
+      startPickerFlow();
     }
   }, [isOpen]);
 
-  const fetchPhotos = async () => {
+  const startPickerFlow = async () => {
     setLoading(true);
     setError(null);
+
     try {
-      // Récupérer le token Google depuis la session Supabase
+      // 1. On récupère ton fameux token !
       const { data: { session } } = await supabase.auth.getSession();
-      const googleToken = session?.provider_token;
+      const token = session?.provider_token;
 
-      if (!googleToken) {
-        throw new Error("Token Google introuvable. Reconnecte-toi avec Google.");
-      }
+      if (!token) throw new Error("Token introuvable. Reconnecte-toi avec Google.");
 
-      // Appel à l'API Google Photos pour récupérer les dernières photos
-      const response = await fetch("https://photoslibrary.googleapis.com/v1/mediaItems?pageSize=50", {
+      // 2. On demande à Google de créer une "Session de sélection"
+      const sessionRes = await fetch("https://photospicker.googleapis.com/v1/sessions", {
+        method: "POST",
         headers: {
-          Authorization: `Bearer ${googleToken}`,
-        },
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
       });
 
-      if (!response.ok) throw new Error("Erreur lors de la récupération des photos");
+      if (!sessionRes.ok) throw new Error("Erreur de création du Picker Google");
+      
+      const sessionData = await sessionRes.json();
+      const sessionId = sessionData.id;
+      const pickerUri = sessionData.pickerUri;
 
-      const data = await response.json();
-      setPhotos(data.mediaItems || []);
+      // 3. On ouvre la fenêtre sécurisée de Google
+      const popup = window.open(pickerUri, "GooglePhotoPicker", "width=800,height=600");
+      
+      if (!popup) {
+        throw new Error("Ton navigateur a bloqué la fenêtre pop-up Google ! Autorise-la en haut de ton écran.");
+      }
+
+      // 4. On écoute toutes les 2 secondes pour voir si tu as fini de choisir
+      const interval = setInterval(async () => {
+        try {
+          const pollRes = await fetch(`https://photospicker.googleapis.com/v1/sessions/${sessionId}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          const pollData = await pollRes.json();
+
+          // Si Google nous dit "C'est bon, les photos sont sélectionnées"
+          if (pollData.mediaItemsSet) {
+            clearInterval(interval);
+            popup.close();
+
+            // 5. On récupère les IDs des photos sélectionnées
+            const itemsRes = await fetch(`https://photospicker.googleapis.com/v1/mediaItems?sessionId=${sessionId}`, {
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+            const itemsData = await itemsRes.json();
+
+            if (itemsData.mediaItems) {
+              const newIds = itemsData.mediaItems.map((item: any) => item.id);
+              onSelect([...selectedIds, ...newIds]);
+            }
+            onClose();
+          }
+        } catch (pollErr) {
+          console.error("En attente de la sélection...");
+        }
+      }, 2000);
+
+      // Sécurité si l'utilisateur ferme la popup avec la croix rouge
+      const checkPopupClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(interval);
+          clearInterval(checkPopupClosed);
+          setLoading(false);
+          onClose();
+        }
+      }, 1000);
+
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
-    }
-  };
-
-  const toggleSelection = (id: string) => {
-    if (selectedIds.includes(id)) {
-      onSelect(selectedIds.filter(photoId => photoId !== id));
-    } else {
-      onSelect([...selectedIds, id]);
     }
   };
 
@@ -62,67 +102,31 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-white p-6 card-brutal max-w-2xl w-full h-[80vh] flex flex-col relative">
-        <div className="flex justify-between items-center mb-4 pb-4 border-b-2 border-black">
-          <h2 className="text-xl font-black uppercase flex items-center gap-2">
-            <ImageIcon className="w-6 h-6 text-blue-500" />
-            Tes Google Photos
-          </h2>
-          <button onClick={onClose} className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 border-2 border-black">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+      <div className="bg-white p-6 card-brutal max-w-md w-full text-center border-4 border-black shadow-brutal">
+        <h2 className="text-xl font-black uppercase mb-4 flex items-center justify-center gap-2">
+          <ImageIcon className="w-6 h-6 text-blue-500" />
+          Sélection en cours
+        </h2>
 
-        <div className="flex-1 overflow-y-auto pr-2">
-          {loading ? (
-            <div className="flex items-center justify-center h-full font-bold animate-pulse">
-              Chargement de ta galerie...
-            </div>
-          ) : error ? (
-            <div className="text-red-500 font-bold text-center mt-10 p-4 border-2 border-red-500 bg-red-50">
-              {error}
-            </div>
-          ) : photos.length === 0 ? (
-            <div className="text-gray-500 font-medium text-center mt-10">
-              Aucune photo trouvée dans ton compte Google.
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {photos.map((photo) => {
-                const isSelected = selectedIds.includes(photo.id);
-                return (
-                  <div 
-                    key={photo.id} 
-                    onClick={() => toggleSelection(photo.id)}
-                    className={`relative cursor-pointer aspect-square border-2 transition-all ${
-                      isSelected ? "border-blue-500 scale-95 shadow-inner" : "border-transparent hover:border-gray-300"
-                    }`}
-                  >
-                    <img 
-                      src={`${photo.baseUrl}=w300-h300-c`} 
-                      alt="Miniature" 
-                      className="w-full h-full object-cover"
-                    />
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1 border-2 border-white shadow-sm">
-                        <Check className="w-4 h-4 font-bold" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {error ? (
+          <div className="text-red-500 font-bold mb-4 border-2 border-red-500 bg-red-50 p-3">
+            {error}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4 my-8">
+            <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+            <p className="font-bold text-gray-700 text-lg">
+              Une fenêtre sécurisée s'est ouverte !
+            </p>
+            <p className="text-sm font-medium text-gray-500">
+              Choisis tes photos dans la nouvelle fenêtre Google, cette modale se fermera toute seule.
+            </p>
+          </div>
+        )}
 
-        <div className="mt-4 pt-4 border-t-2 border-black flex justify-between items-center">
-          <span className="font-bold text-sm">
-            {selectedIds.length} sélectionnée(s)
-          </span>
-          <button onClick={onClose} className="btn-brutal bg-black text-white px-6 py-2 font-bold">
-            Valider
-          </button>
-        </div>
+        <button onClick={onClose} className="btn-brutal bg-black text-white px-6 py-3 font-bold w-full uppercase">
+          Fermer / Annuler
+        </button>
       </div>
     </div>
   );
