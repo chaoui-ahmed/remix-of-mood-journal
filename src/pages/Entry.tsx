@@ -194,19 +194,19 @@ export default function Entry() {
               <div className="flex justify-between items-center mb-4">
                 <label className="block text-sm font-black uppercase flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-blue-500" />
-                  Photos associées
+                  PIKS
                 </label>
                 <button 
                   type="button" 
                   onClick={handleOpenPhotoPicker}
                   className="px-3 py-1 bg-blue-100 text-blue-600 border-2 border-black shadow-brutal-sm font-bold text-sm hover:bg-blue-200 transition-colors"
                 >
-                  + Ajouter Google Photos
+                  + Ajouter
                 </button>
               </div>
               {photoIds.length > 0 ? (
                 <div className="text-sm font-bold text-blue-600 bg-blue-50 p-3 border-2 border-blue-200">
-                  {photoIds.length} photo(s) prête(s) à être associée(s) !
+                  {photoIds.length} PIKS !
                 </div>
               ) : (
                 <p className="text-sm font-medium text-gray-500 italic">Aucune photo sélectionnée.</p>

@@ -35,7 +35,7 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
       if (!token) throw new Error("Token introuvable. Reconnecte-toi.");
       setTokenCache(token);
 
-      addLog("Création de la session Google...");
+      addLog("PIKS LOADING");
       const sessionRes = await fetch("https://photospicker.googleapis.com/v1/sessions", {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
@@ -56,7 +56,7 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
         isFinished = true;
         
         try {
-          addLog("Google a validé ! Demande des photos...");
+          
           const itemsRes = await fetch(`https://photospicker.googleapis.com/v1/mediaItems?sessionId=${sessionData.id}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
@@ -69,7 +69,7 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
           for (const item of itemsData.mediaItems) {
             // Demander la qualité originale pour éviter certains blocages
             const googleUrl = `${item.mediaFile.baseUrl}=d`;
-            addLog("⬇️ Téléchargement forcé avec Pass VIP...");
+            
 
             try {
               // LA MAGIE EST ICI : On passe le Token et on cache l'origine !
@@ -84,7 +84,7 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
               if (!imgRes.ok) throw new Error(`Google bloque encore (Code ${imgRes.status})`);
               const blob = await imgRes.blob();
               
-              addLog("⬆️ Envoi vers ton Supabase...");
+              
               const fileName = `pixel-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
               const { error: uploadError } = await supabase.storage
                 .from('journal-photos')
@@ -99,23 +99,23 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
                 .getPublicUrl(fileName);
 
               finalUrls.push(publicUrlData.publicUrl);
-              addLog("✅ Image sauvegardée dans TON coffre !");
+              
 
             } catch (uploadErr: any) {
-               addLog(`❌ ERREUR DE TRANSFERT : ${uploadErr.message}`);
+               
             }
           }
 
           if (finalUrls.length > 0) {
             onSelect([...selectedIds, ...finalUrls]);
-            addLog("🎉 SUCCÈS ! Tu peux fermer cette fenêtre.");
+            
           } else {
-            addLog("❌ Toutes les photos ont échoué.");
+            
           }
           setIsDone(true);
 
         } catch (err: any) {
-          addLog(`❌ ERREUR: ${err.message}`);
+          
           setIsDone(true);
         }
       };
