@@ -13,10 +13,11 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          date: string      // La fameuse date unique
+          date: string
           content: string | null
           mood_score: number | null
           hashtags: string[] | null
+          google_photos_ids: string[] | null // NOUVEAU
         }
         Insert: {
           id?: string
@@ -25,6 +26,7 @@ export interface Database {
           content?: string | null
           mood_score?: number | null
           hashtags?: string[] | null
+          google_photos_ids?: string[] | null // NOUVEAU
         }
         Update: {
           id?: string
@@ -33,11 +35,12 @@ export interface Database {
           content?: string | null
           mood_score?: number | null
           hashtags?: string[] | null
+          google_photos_ids?: string[] | null // NOUVEAU
         }
       }
       profiles: {
         Row: {
-          id: string        // L'ID correspond à l'Auth User ID
+          id: string
           username: string | null
           avatar_url: string | null
           display_name: string | null

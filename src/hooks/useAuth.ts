@@ -27,6 +27,23 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // --- NOUVELLE FONCTION : Connexion avec Google (et permissions Photos) ---
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // Demande l'accès en lecture aux Google Photos
+        scopes: 'https://www.googleapis.com/auth/photoslibrary.readonly',
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+    return { error };
+  };
+
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
@@ -59,6 +76,7 @@ export function useAuth() {
     loading,
     signUp,
     signIn,
+    signInWithGoogle, // N'oublie pas de l'exporter ici
     signOut,
   };
 }

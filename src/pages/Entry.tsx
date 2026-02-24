@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Sparkles, X } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, X, Image as ImageIcon } from "lucide-react";
 import { Navigation } from "@/components/layout/Navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { MoodSelector } from "@/components/journal/MoodSelector";
 import { HashtagInput } from "@/components/journal/HashtagInput";
 import { useEntry, useCreateEntry, useUpdateEntry } from "@/hooks/useEntries";
 import { useToast } from "@/hooks/use-toast";
+import { GooglePhotoPicker } from "@/components/journal/GooglePhotoPicker";
 
 export default function Entry() {
   const { id } = useParams();
@@ -22,7 +23,11 @@ export default function Entry() {
   const [moodScore, setMoodScore] = useState(3);
   const [hashtags, setHashtags] = useState<string[]>([]);
   
-  // État pour gérer l'affichage de la popup "Call Me Maybe"
+  // État pour les photos Google
+  const [photoIds, setPhotoIds] = useState<string[]>([]);
+  const [isPhotoPickerOpen, setIsPhotoPickerOpen] = useState(false);
+  
+  // État pour la popup "Call Me Maybe"
   const [showSpecialPopup, setShowSpecialPopup] = useState(false);
   
   const urlDate = searchParams.get("date");
@@ -33,11 +38,13 @@ export default function Entry() {
       setContent(existingEntry.content || "");
       setMoodScore(existingEntry.mood_score || 3);
       setHashtags(existingEntry.hashtags || []);
+      setPhotoIds(existingEntry.google_photos_ids || []); // Charger les IDs existants
       if (existingEntry.date) setDate(existingEntry.date);
     } else {
       setContent("");
       setMoodScore(3);
       setHashtags([]);
+      setPhotoIds([]); // Réinitialiser pour une nouvelle entrée
       if (urlDate) setDate(urlDate);
     }
   }, [existingEntry, id, urlDate]);
@@ -58,6 +65,7 @@ export default function Entry() {
       mood_score: moodScore,
       hashtags,
       date,
+      google_photos_ids: photoIds, // Ajouter les IDs des photos à la sauvegarde
     };
 
     try {
@@ -71,10 +79,7 @@ export default function Entry() {
       if (moodScore === 1) {
         setShowSpecialPopup(true);
       } else {
-        toast({
-          title: "Succès",
-          description: "Pixel enregistré avec succès !",
-        });
+        toast({ title: "Succès", description: "Pixel enregistré avec succès !" });
         navigate("/");
       }
       
@@ -88,10 +93,14 @@ export default function Entry() {
     }
   };
 
-  // Fonction appelée quand on ferme la popup (bouton ou croix)
   const handleClosePopup = () => {
     setShowSpecialPopup(false);
     navigate("/");
+  };
+
+  // Ouvre la modale Google Photos
+  const handleOpenPhotoPicker = () => {
+    setIsPhotoPickerOpen(true);
   };
 
   if (isLoading) {
@@ -111,7 +120,6 @@ export default function Entry() {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in zoom-in duration-300">
           <div className="bg-white p-2 card-brutal max-w-sm w-full relative flex flex-col items-center text-center">
             
-            {/* Bouton fermeture croix */}
             <button 
               onClick={handleClosePopup}
               className="absolute -top-4 -right-4 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 border-2 border-black shadow-brutal-sm z-10"
@@ -119,7 +127,6 @@ export default function Entry() {
               <X className="w-6 h-6" />
             </button>
             
-            {/* Image */}
             <div className="border-2 border-black w-full mb-4">
                <img 
                 src="https://i.pinimg.com/736x/74/72/0b/74720b4dc3956fff41810ab55ee192b6.jpg" 
@@ -128,7 +135,6 @@ export default function Entry() {
               />
             </div>
 
-            {/* Texte */}
             <h3 className="text-2xl font-black uppercase text-pink-600 mb-2">
               So call me maybe 💖
             </h3>
@@ -136,7 +142,6 @@ export default function Entry() {
               06 35 47 70 19
             </p>
 
-            {/* Bouton OK */}
             <button 
               onClick={handleClosePopup}
               className="w-full btn-brutal bg-black text-white hover:bg-gray-800 py-3"
@@ -150,10 +155,7 @@ export default function Entry() {
       <PageTransition>
         <main className="container mx-auto px-4 py-8 max-w-2xl">
           <div className="flex items-center gap-4 mb-8">
-            <button 
-              onClick={() => navigate(-1)} 
-              className="btn-brutal p-2 bg-white hover:bg-gray-100"
-            >
+            <button onClick={() => navigate(-1)} className="btn-brutal p-2 bg-white hover:bg-gray-100">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="text-4xl font-black text-orange-500 uppercase tracking-tighter">
@@ -187,6 +189,30 @@ export default function Entry() {
               />
             </div>
 
+            {/* SECTION GOOGLE PHOTOS */}
+            <div className="card-brutal p-6 bg-white">
+              <div className="flex justify-between items-center mb-4">
+                <label className="block text-sm font-black uppercase flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-blue-500" />
+                  Photos associées
+                </label>
+                <button 
+                  type="button" 
+                  onClick={handleOpenPhotoPicker}
+                  className="px-3 py-1 bg-blue-100 text-blue-600 border-2 border-black shadow-brutal-sm font-bold text-sm hover:bg-blue-200 transition-colors"
+                >
+                  + Ajouter Google Photos
+                </button>
+              </div>
+              {photoIds.length > 0 ? (
+                <div className="text-sm font-bold text-blue-600 bg-blue-50 p-3 border-2 border-blue-200">
+                  {photoIds.length} photo(s) prête(s) à être associée(s) !
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-gray-500 italic">Aucune photo sélectionnée.</p>
+              )}
+            </div>
+
             <div className="card-brutal p-6 bg-white">
               <HashtagInput value={hashtags} onChange={setHashtags} />
             </div>
@@ -202,6 +228,14 @@ export default function Entry() {
           </form>
         </main>
       </PageTransition>
+
+      {/* COMPOSANT SÉLECTEUR GOOGLE PHOTOS */}
+      <GooglePhotoPicker 
+        isOpen={isPhotoPickerOpen}
+        onClose={() => setIsPhotoPickerOpen(false)}
+        selectedIds={photoIds}
+        onSelect={setPhotoIds}
+      />
     </div>
   );
 }
