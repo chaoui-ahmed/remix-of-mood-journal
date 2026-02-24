@@ -109,7 +109,14 @@ export default function Trends() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-black mb-1">Analytics</h1>
-              <p className="text-muted-foreground">Tes statistiques en temps réel</p>
+              <a 
+                href="https://www.youtube.com/watch?v=BvWefB4NGGI" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground block"
+              >
+                Statistiquessss
+              </a>
             </div>
             
             {/* Barre de Recherche Améliorée */}
