@@ -52,6 +52,9 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
       let isFinished = false;
 
       // Fonction finale qui récupère vraiment les photos
+      // ... (le reste du code au-dessus reste identique)
+
+      // Fonction finale qui récupère et transfère les photos
       const fetchPhotosAndClose = async () => {
         if (isFinished) return;
         isFinished = true;
@@ -63,16 +66,52 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
           const itemsData = await itemsRes.json();
           
           if (itemsData.mediaItems && itemsData.mediaItems.length > 0) {
-            // On extrait les identifiants
-            const newIds = itemsData.mediaItems.map((item: any) => item.id);
-            onSelect([...selectedIds, ...newIds]); // On les envoie à Entry.tsx !
+            const finalUrls = [];
+
+            // Pour chaque photo choisie par l'utilisateur...
+            for (const item of itemsData.mediaItems) {
+              try {
+                // 1. On crée une URL Google optimisée (largeur max 1080px pour économiser TON stockage)
+                const optimizedGoogleUrl = `${item.mediaFile.baseUrl}=w1080`;
+                
+                // 2. On télécharge la photo depuis Google
+                const imageResponse = await fetch(optimizedGoogleUrl);
+                const imageBlob = await imageResponse.blob();
+                
+                // 3. On crée un nom de fichier unique
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+
+                // 4. On l'envoie discrètement dans TON Supabase Storage
+                const { data, error } = await supabase.storage
+                  .from('journal-photos')
+                  .upload(fileName, imageBlob, {
+                    contentType: 'image/jpeg',
+                  });
+
+                if (error) throw error;
+
+                // 5. On récupère l'URL publique et permanente de ton Supabase
+                const { data: publicUrlData } = supabase.storage
+                  .from('journal-photos')
+                  .getPublicUrl(fileName);
+
+                finalUrls.push(publicUrlData.publicUrl);
+              } catch (uploadError) {
+                console.error("Erreur lors du transfert d'une image:", uploadError);
+              }
+            }
+
+            // On envoie les URLs Supabase (et non plus les IDs Google) à la page Entry.tsx !
+            onSelect([...selectedIds, ...finalUrls]);
           }
         } catch (err) {
-          console.error("Erreur de récupération des images:", err);
+          console.error("Erreur globale de récupération:", err);
         } finally {
-          onClose(); // On ferme notre modale de chargement
+          onClose();
         }
       };
+
+      // ... (le reste du code en dessous reste identique)
 
       // 3. On surveille toutes les 2 secondes
       const pollInterval = setInterval(async () => {

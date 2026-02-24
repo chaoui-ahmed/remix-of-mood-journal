@@ -107,20 +107,22 @@ export function EntryCard({ entry, onClick }: EntryCardProps) {
         {entry.content || "Contenu vide..."}
       </p>
 
-      {/* NOUVEAU : Affichage des images récupérées dynamiquement */}
-      {photoUrls.length > 0 && (
+      // Remplacer l'ancien affichage par ceci dans le composant EntryCard :
+
+      {/* Affichage des images permanentes */}
+      {entry.google_photos_ids && entry.google_photos_ids.length > 0 && (
         <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
-          {photoUrls.map((url, i) => (
+          {entry.google_photos_ids.map((url, i) => (
             <img 
               key={i} 
-              src={url} 
+              src={url} // C'est maintenant une vraie URL Supabase !
               alt="Moment de la journée" 
               className="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-sm flex-shrink-0"
+              loading="lazy"
             />
           ))}
         </div>
       )}
-
       {entry.hashtags && entry.hashtags.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
           <Hash className="w-3 h-3 text-pink-400" />
