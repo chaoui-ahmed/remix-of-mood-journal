@@ -36,7 +36,8 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
-        }
+        },
+        body: JSON.stringify({})
       });
 
       if (!sessionRes.ok) throw new Error("Erreur de création du Picker Google");
