@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Image as ImageIcon, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Image as ImageIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface GooglePhotoPickerProps {
@@ -12,6 +12,8 @@ interface GooglePhotoPickerProps {
 export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: GooglePhotoPickerProps) {
   const [logs, setLogs] = useState<string[]>([]);
   const [isDone, setIsDone] = useState(false);
+  const [sessionIdCache, setSessionIdCache] = useState<string | null>(null);
+  const [tokenCache, setTokenCache] = useState<string | null>(null);
 
   const addLog = (msg: string) => {
     setLogs((prev) => [...prev, msg]);
@@ -28,13 +30,14 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
 
   const startPickerFlow = async () => {
     try {
-      addLog("1. Vérification de ta connexion Google...");
+      addLog("1. Connexion...");
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.provider_token;
       
       if (!token) throw new Error("Token introuvable. Reconnecte-toi avec Google.");
+      setTokenCache(token);
 
-      addLog("2. Création de la session Google Photos...");
+      addLog("2. Création de la session Google...");
       const sessionRes = await fetch("https://photospicker.googleapis.com/v1/sessions", {
         method: "POST",
         headers: {
@@ -48,58 +51,74 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
       
       const sessionData = await sessionRes.json();
       const sessionId = sessionData.id;
-      const pickerUri = sessionData.pickerUri; 
+      setSessionIdCache(sessionId);
+      
+      // LA MAGIE EST ICI : On ajoute /autoclose pour que Google gère la fermeture
+      const pickerUri = sessionData.pickerUri + "/autoclose"; 
 
-      addLog("3. Ouverture de la fenêtre sécurisée (Choisis ta photo puis clique sur Done)...");
+      addLog("3. Fenêtre ouverte ! Choisis tes photos, valide, et NE FERME PAS la fenêtre toi-même.");
       const popup = window.open(pickerUri, "GooglePhotoPicker", "width=800,height=600");
       if (!popup) throw new Error("Ton navigateur a bloqué la popup !");
 
       let isFinished = false;
 
-      // Fonction finale de récupération
       const fetchPhotos = async () => {
         if (isFinished) return;
         isFinished = true;
         
         try {
-          addLog("5. Google dit que c'est fini ! Analyse des photos...");
+          addLog("5. Google a validé ! Récupération des photos...");
           const itemsRes = await fetch(`https://photospicker.googleapis.com/v1/mediaItems?sessionId=${sessionId}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           const itemsData = await itemsRes.json();
           
-          if (itemsData.error) {
-            throw new Error(itemsData.error.message);
-          }
-
           if (!itemsData.mediaItems || itemsData.mediaItems.length === 0) {
-            addLog("❌ AUCUNE PHOTO TROUVÉE : Tu as validé sans rien sélectionner ?");
+            addLog("❌ Bizarre, Google dit OK mais n'envoie aucune photo.");
             setIsDone(true);
             return;
           }
 
-          addLog(`✅ ${itemsData.mediaItems.length} photo(s) récupérée(s) !`);
+          addLog(`✅ ${itemsData.mediaItems.length} photo(s) trouvée(s) ! Transfert en cours...`);
           const finalUrls = [];
 
           for (const item of itemsData.mediaItems) {
-            if (item.mediaFile && item.mediaFile.baseUrl) {
-               // On prend le lien direct Google pour tester
-               finalUrls.push(`${item.mediaFile.baseUrl}=w1080`);
+            const googleUrl = `${item.mediaFile.baseUrl}=w1080`;
+            try {
+               // On tente d'uploader dans ton Supabase
+               const imageResponse = await fetch(googleUrl);
+               const imageBlob = await imageResponse.blob();
+               const fileName = `pixel-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+               
+               const { error: uploadError } = await supabase.storage
+                 .from('journal-photos')
+                 .upload(fileName, imageBlob, { contentType: 'image/jpeg' });
+
+               if (uploadError) throw uploadError;
+
+               const { data: publicUrlData } = supabase.storage
+                 .from('journal-photos')
+                 .getPublicUrl(fileName);
+
+               finalUrls.push(publicUrlData.publicUrl);
+            } catch (err) {
+               addLog("⚠️ Echec transfert Supabase, utilisation du lien Google de secours.");
+               finalUrls.push(googleUrl);
             }
           }
 
-          addLog("6. Envoi des liens vers ton Pixel...");
+          addLog("6. Envoi au Pixel...");
           onSelect([...selectedIds, ...finalUrls]);
-          addLog("🎉 SUCCÈS TOTAL ! Tu peux fermer cette fenêtre.");
+          addLog("🎉 SUCCÈS ! Tu peux fermer et enregistrer ton Pixel !");
           setIsDone(true);
 
         } catch (err: any) {
-          addLog(`❌ ERREUR FATALE: ${err.message}`);
+          addLog(`❌ ERREUR: ${err.message}`);
           setIsDone(true);
         }
       };
 
-      // Le Radar qui vérifie toutes les 2 secondes
+      // On vérifie toutes les 5 secondes (Recommandation officielle Google)
       const pollInterval = setInterval(async () => {
         if (isFinished) {
           clearInterval(pollInterval);
@@ -113,17 +132,17 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
           
           if (pollData.mediaItemsSet) {
             clearInterval(pollInterval);
-            if (!popup.closed) popup.close(); 
-            addLog("4. Fenêtre fermée automatiquement.");
+            if (!popup.closed) popup.close(); // Sécurité
+            addLog("4. Signal reçu de Google !");
             await fetchPhotos();
           }
         } catch (e) {
-          // On ignore les petites erreurs réseau
+          // Ignorer erreurs réseau
         }
-      }, 2000);
+      }, 5000);
 
-      // Si l'utilisateur ferme la fenêtre avec la croix rouge
-      const closeInterval = setInterval(async () => {
+      // Si l'utilisateur ferme avec la croix
+      const closeInterval = setInterval(() => {
         if (isFinished) {
           clearInterval(closeInterval);
           return;
@@ -131,29 +150,49 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
         if (popup.closed) {
           clearInterval(closeInterval);
           clearInterval(pollInterval);
-          addLog("⚠️ La fenêtre a été fermée. Dernière vérification...");
-          try {
-            const finalPoll = await fetch(`https://photospicker.googleapis.com/v1/sessions/${sessionId}`, {
-              headers: { "Authorization": `Bearer ${token}` }
-            });
-            const finalData = await finalPoll.json();
-            if (finalData.mediaItemsSet) {
-              await fetchPhotos();
-            } else {
-              addLog("❌ Annulation: Tu as fermé sans valider de photos.");
-              setIsDone(true);
-            }
-          } catch (e) {
-            addLog("❌ Annulation confirmée.");
-            setIsDone(true);
-          }
+          addLog("⚠️ La fenêtre a été fermée manuellement.");
+          addLog("Si tu avais bien cliqué sur 'Done', clique sur 'Forcer la vérification' ci-dessous.");
+          setIsDone(true); // On arrête le chargement, mais on laisse les boutons
         }
       }, 1000);
 
     } catch (err: any) {
-      addLog(`❌ ERREUR DE DÉMARRAGE: ${err.message}`);
+      addLog(`❌ ERREUR: ${err.message}`);
       setIsDone(true);
     }
+  };
+
+  // Fonction manuelle au cas où la fenêtre se ferme mal
+  const manualCheck = async () => {
+    if (!sessionIdCache || !tokenCache) return;
+    addLog("🔍 Vérification forcée en cours...");
+    setIsDone(false);
+    try {
+      const pollRes = await fetch(`https://photospicker.googleapis.com/v1/sessions/${sessionIdCache}`, {
+        headers: { "Authorization": `Bearer ${tokenCache}` }
+      });
+      const pollData = await pollRes.json();
+      
+      if (pollData.mediaItemsSet) {
+        addLog("✅ Google confirme la sélection ! Récupération...");
+        // Dupliquer la logique de fetch ici pour le forçage
+        const itemsRes = await fetch(`https://photospicker.googleapis.com/v1/mediaItems?sessionId=${sessionIdCache}`, {
+          headers: { "Authorization": `Bearer ${tokenCache}` }
+        });
+        const itemsData = await itemsRes.json();
+        
+        if (itemsData.mediaItems) {
+           const urls = itemsData.mediaItems.map((item: any) => `${item.mediaFile.baseUrl}=w1080`);
+           onSelect([...selectedIds, ...urls]);
+           addLog("🎉 SUCCÈS FORCÉ ! Tu peux fermer.");
+        }
+      } else {
+        addLog("❌ Google dit que rien n'a été sélectionné.");
+      }
+    } catch (e: any) {
+      addLog(`❌ Erreur: ${e.message}`);
+    }
+    setIsDone(true);
   };
 
   if (!isOpen) return null;
@@ -163,12 +202,10 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
       <div className="bg-white p-6 card-brutal max-w-lg w-full border-4 border-black shadow-brutal flex flex-col max-h-[90vh]">
         <h2 className="text-xl font-black uppercase mb-4 flex items-center justify-center gap-2 border-b-2 border-black pb-4">
           <ImageIcon className="w-6 h-6 text-blue-500" />
-          Débogage Google Photos
+          Importation Google
         </h2>
 
-        {/* Espace où s'affichent les logs en direct */}
         <div className="flex-1 overflow-y-auto bg-gray-50 border-2 border-gray-200 p-4 mb-6 font-mono text-sm space-y-2 text-left">
-          {logs.length === 0 && <p className="text-gray-400">Démarrage...</p>}
           {logs.map((log, i) => (
             <p key={i} className={`${log.includes('❌') ? 'text-red-600 font-bold' : log.includes('✅') || log.includes('🎉') ? 'text-green-600 font-bold' : 'text-gray-700'}`}>
               {log}
@@ -176,17 +213,24 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
           ))}
           {!isDone && (
              <div className="flex items-center gap-2 mt-4 text-blue-500 font-bold">
-               <Loader2 className="w-4 h-4 animate-spin" /> En attente...
+               <Loader2 className="w-4 h-4 animate-spin" /> Patience...
              </div>
           )}
         </div>
 
-        <button 
-          onClick={onClose} 
-          className={`btn-brutal px-6 py-3 font-bold w-full uppercase transition-colors ${isDone ? 'bg-black text-white hover:bg-gray-800' : 'bg-red-500 text-white hover:bg-red-600'}`}
-        >
-          {isDone ? "Fermer cette fenêtre" : "Forcer l'annulation"}
-        </button>
+        <div className="flex gap-2 flex-col sm:flex-row">
+          {isDone && logs.some(l => l.includes('fermée manuellement')) && (
+            <button onClick={manualCheck} className="btn-brutal flex-1 px-4 py-3 font-bold uppercase bg-blue-500 text-white hover:bg-blue-600">
+              Forcer la vérification
+            </button>
+          )}
+          <button 
+            onClick={onClose} 
+            className={`btn-brutal flex-1 px-4 py-3 font-bold uppercase transition-colors ${isDone && logs.some(l => l.includes('SUCCÈS')) ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-black text-white hover:bg-gray-800'}`}
+          >
+            {isDone && logs.some(l => l.includes('SUCCÈS')) ? "Fermer & Continuer" : "Annuler"}
+          </button>
+        </div>
       </div>
     </div>
   );
