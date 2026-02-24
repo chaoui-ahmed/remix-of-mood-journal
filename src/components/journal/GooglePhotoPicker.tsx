@@ -12,7 +12,7 @@ interface GooglePhotoPickerProps {
 export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: GooglePhotoPickerProps) {
   const [logs, setLogs] = useState<string[]>([]);
   const [isDone, setIsDone] = useState(false);
-  const [sessionIdCache, setSessionIdCache] = useState<string | null>(null);
+  const [sessionDataCache, setSessionDataCache] = useState<any>(null);
   const [tokenCache, setTokenCache] = useState<string | null>(null);
 
   const addLog = (msg: string) => {
@@ -44,7 +44,7 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
       
       if (!sessionRes.ok) throw new Error("Erreur de création de session Google.");
       const sessionData = await sessionRes.json();
-      setSessionIdCache(sessionData.id);
+      setSessionDataCache(sessionData);
       
       const pickerUri = sessionData.pickerUri + "/autoclose"; 
       const popup = window.open(pickerUri, "GooglePhotoPicker", "width=800,height=600");
@@ -67,17 +67,24 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
           const finalUrls = [];
           
           for (const item of itemsData.mediaItems) {
-            const googleUrl = `${item.mediaFile.baseUrl}=w1080`;
-            addLog("⬇️ Téléchargement depuis Google...");
+            // Demander la qualité originale pour éviter certains blocages
+            const googleUrl = `${item.mediaFile.baseUrl}=d`;
+            addLog("⬇️ Téléchargement forcé avec Pass VIP...");
 
             try {
-              // 1. On télécharge la photo
-              const imgRes = await fetch(googleUrl);
-              if (!imgRes.ok) throw new Error(`Google bloque le téléchargement (${imgRes.status})`);
+              // LA MAGIE EST ICI : On passe le Token et on cache l'origine !
+              const imgRes = await fetch(googleUrl, {
+                method: "GET",
+                headers: {
+                  "Authorization": `Bearer ${token}` // Badge VIP
+                },
+                referrerPolicy: "no-referrer" // Cape d'invisibilité
+              });
+
+              if (!imgRes.ok) throw new Error(`Google bloque encore (Code ${imgRes.status})`);
               const blob = await imgRes.blob();
               
               addLog("⬆️ Envoi vers ton Supabase...");
-              // 2. On upload dans Supabase
               const fileName = `pixel-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
               const { error: uploadError } = await supabase.storage
                 .from('journal-photos')
@@ -87,7 +94,6 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
                 throw new Error(`Supabase a refusé: ${uploadError.message}`);
               }
 
-              // 3. On récupère le bon lien !
               const { data: publicUrlData } = supabase.storage
                 .from('journal-photos')
                 .getPublicUrl(fileName);
@@ -97,7 +103,6 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
 
             } catch (uploadErr: any) {
                addLog(`❌ ERREUR DE TRANSFERT : ${uploadErr.message}`);
-               // On ne donne PAS le lien Google de secours car on sait qu'il affiche le logo interdit
             }
           }
 
@@ -105,7 +110,7 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
             onSelect([...selectedIds, ...finalUrls]);
             addLog("🎉 SUCCÈS ! Tu peux fermer cette fenêtre.");
           } else {
-            addLog("❌ Toutes les photos ont échoué. Regarde l'erreur au-dessus.");
+            addLog("❌ Toutes les photos ont échoué.");
           }
           setIsDone(true);
 
@@ -134,10 +139,6 @@ export function GooglePhotoPicker({ isOpen, onClose, selectedIds, onSelect }: Go
       addLog(`❌ ERREUR FATALE: ${err.message}`);
       setIsDone(true);
     }
-  };
-
-  const manualCheck = async () => {
-    // ... [Garde la fonction manualCheck d'avant si tu veux, sinon tu peux l'enlever]
   };
 
   if (!isOpen) return null;
