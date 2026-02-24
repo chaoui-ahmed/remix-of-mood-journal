@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,9 +10,18 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle } = useAuth(); // Import de signInWithGoogle
+  
+  // NOUVEAU : On récupère "session" depuis useAuth pour surveiller l'état
+  const { signIn, signUp, signInWithGoogle, session } = useAuth(); 
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // LA MAGIE EST ICI : Dès que Supabase valide la session, on redirige automatiquement.
+  useEffect(() => {
+    if (session) {
+      navigate("/");
+    }
+  }, [session, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,16 +37,15 @@ export default function Auth() {
         description: error.message,
         variant: "destructive",
       });
+      setLoading(false); // On arrête le chargement seulement s'il y a une erreur
     } else {
       if (!isLogin) {
-        toast({ title: "Compte créé", description: "Tu peux maintenant te connecter." });
+        toast({ title: "Compte créé !", description: "Connexion en cours..." });
       }
-      navigate("/");
+      // On ne fait plus de navigate("/") manuel ici, le useEffect s'en charge tout seul !
     }
-    setLoading(false);
   };
 
-  // NOUVEAU : Handler pour Google
   const handleGoogleSignIn = async () => {
     setLoading(true);
     const { error } = await signInWithGoogle();
@@ -50,7 +58,6 @@ export default function Auth() {
       });
       setLoading(false);
     }
-    // Pas de redirect manuel ici car OAuth redirige automatiquement la page entière
   };
 
   return (
@@ -103,7 +110,6 @@ export default function Auth() {
             </Button>
           </form>
 
-          {/* NOUVEAU : Séparateur et bouton Google */}
           <div className="mt-6 flex flex-col gap-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -121,7 +127,6 @@ export default function Auth() {
               onClick={handleGoogleSignIn} 
               disabled={loading}
             >
-              {/* SVG de l'icône Google */}
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
