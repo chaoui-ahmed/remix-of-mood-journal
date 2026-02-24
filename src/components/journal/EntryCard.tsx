@@ -109,15 +109,16 @@ export function EntryCard({ entry, onClick }: EntryCardProps) {
 
       // Remplacer l'ancien affichage par ceci dans le composant EntryCard :
 
-      {/* Affichage des images permanentes */}
+      {/* Affichage des images */}
       {entry.google_photos_ids && entry.google_photos_ids.length > 0 && (
         <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
           {entry.google_photos_ids.map((url, i) => (
             <img 
               key={i} 
-              src={url} // C'est maintenant une vraie URL Supabase !
+              src={url} 
               alt="Moment de la journée" 
-              className="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-sm flex-shrink-0"
+              referrerPolicy="no-referrer" // 👈 AJOUTE CETTE LIGNE MAGIQUE ICI
+              className="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-sm flex-shrink-0 bg-gray-100"
               loading="lazy"
             />
           ))}
