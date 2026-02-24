@@ -39,21 +39,26 @@ export default function Trends() {
     }
 
     // Filtre par Recherche (Hashtag OU Texte simple)
+// Filtre par Recherche (Hashtag OU Texte simple)
+    // Filtre par Recherche (Hashtag OU Texte simple)
     if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      const isTagSearch = term.startsWith("#");
-      const cleanTerm = term.replace("#", ""); // On enlève le # pour la recherche de tag
+      // On ne met PLUS le .toLowerCase() ici pour garder tes majuscules
+      const isTagSearch = searchTerm.startsWith("#");
+      const cleanTerm = searchTerm.replace("#", ""); 
+
+      // On enlève le "i" à la fin pour que la Regex respecte les majuscules
+      const regex = new RegExp(`\\b${cleanTerm}\\b`);
 
       data = data.filter(entry => {
-        // Recherche dans les tags
-        const matchTag = entry.hashtags?.some((tag: string) => tag.toLowerCase().includes(cleanTerm));
+        // Recherche dans les tags : le tag doit correspondre exactement (majuscules comprises)
+        const matchTag = entry.hashtags?.some((tag: string) => tag === cleanTerm);
         
         // Si l'utilisateur a tapé explicitement "#", on ne cherche que dans les tags
         if (isTagSearch) return matchTag;
 
-        // Recherche dans le texte (On suppose que ta colonne s'appelle 'notes' ou 'content' dans la DB)
-        const textContent = (entry.notes || entry.content || "").toLowerCase();
-        const matchText = textContent.includes(term);
+        // Recherche dans le texte avec la Regex
+        const textContent = entry.notes || entry.content || "";
+        const matchText = regex.test(textContent);
 
         return matchTag || matchText;
       });
