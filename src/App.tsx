@@ -8,7 +8,7 @@ import Entry from "./pages/Entry";
 import Trends from "./pages/Trends";
 import Settings from "./pages/Settings";
 import BirthdayEffect from "./components/ui/birthday-effect";
-import PhotoGallery from "./components/ui/photo-gallery";
+import Gallery from "./pages/Gallery";
 import { ThemeLoader } from "@/components/layout/ThemeLoader";
 
 const queryClient = new QueryClient();
@@ -93,7 +93,7 @@ const App = () => {
           <Route path="/entry/:id" element={<ProtectedRoute><Entry /></ProtectedRoute>} />
           <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/gallery" element={<ProtectedRoute><div className="min-h-screen bg-black w-full"><PhotoGallery /></div></ProtectedRoute>} />
+          <Route path="/gallery" element={<ProtectedRoute><Gallery /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
