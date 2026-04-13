@@ -10,6 +10,7 @@ import Settings from "./pages/Settings";
 import BirthdayEffect from "./components/ui/birthday-effect";
 import Gallery from "./pages/Gallery";
 import { ThemeLoader } from "@/components/layout/ThemeLoader";
+import HeartWallpaper from "./components/ui/heart-wallpaper";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const App = () => {
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/gallery" element={<ProtectedRoute><Gallery /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
+          <Route path="/22" element={<HeartWallpaper />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
