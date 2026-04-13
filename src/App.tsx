@@ -12,6 +12,7 @@ import Gallery from "./pages/Gallery";
 import { ThemeLoader } from "@/components/layout/ThemeLoader";
 import HeartWallpaper from "./components/ui/heart-wallpaper";
 
+
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
