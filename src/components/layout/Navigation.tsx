@@ -1,14 +1,14 @@
-import { Link, useLocation } from "react-router-dom";
-import { Grid3X3, PenLine, TrendingUp, Settings, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Grid3X3, PenLine, TrendingUp, Settings, LogOut, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { path: "/", icon: Grid3X3, label: "Calendrier" },
   { path: "/entry", icon: PenLine, label: "Écrire" },
   { path: "/trends", icon: TrendingUp, label: "Analytics" },
+  { path: "/gallery", icon: Image, label: "Galerie" },
   { path: "/settings", icon: Settings, label: "Paramètres" },
 ];
 
@@ -35,11 +35,10 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            {/* Remplacement du bloc P par ton image */}
-            <img 
-              src="/favicon.png" 
-              alt="Logo" 
-              className="w-8 h-8 object-contain" 
+            <img
+              src="/favicon.png"
+              alt="Logo"
+              className="w-8 h-8 object-contain"
             />
             <span className="font-bold text-xl hidden sm:block tracking-tighter">OUR PIXELS</span>
           </Link>
