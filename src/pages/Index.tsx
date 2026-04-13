@@ -45,7 +45,7 @@ export default function Index() {
               Mes Pixels ✨
             </h1>
             <div className="text-muted-foreground font-medium italic mb-8">
-               ✨✨✨✨✨ <p className="text-muted-foreground mb-8">coucou je t'aime <3</p>
+               ✨✨✨✨✨ <p className="text-muted-foreground mb-8">22 !!!! j'espere qu'on passera notre vie a 2 💕</p>
             </div>
           </div>
           
