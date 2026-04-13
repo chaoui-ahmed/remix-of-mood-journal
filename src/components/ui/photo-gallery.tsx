@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 export interface PixelEntry {
   id: string;
@@ -8,13 +9,7 @@ export interface PixelEntry {
   url: string;
 }
 
-const DEFAULT_PIXELS: PixelEntry[] = [
-  { id: '1', date: '12 Avril 2026', image: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131', url: '/pixel/1' },
-  { id: '2', date: '10 Avril 2026', image: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9', url: '/pixel/2' },
-  { id: '3', date: '05 Avril 2026', image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1', url: '/pixel/3' },
-];
-
-export default function PhotoGallery({ entries = DEFAULT_PIXELS }: { entries?: PixelEntry[] }) {
+export default function PhotoGallery({ entries = [] }: { entries?: PixelEntry[] }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const col1 = entries.filter((_, i) => i % 3 === 0);
@@ -46,9 +41,9 @@ function PhotoCard({ entry, className, hoveredId, onHover }: { entry: PixelEntry
   const isDimmed = hoveredId !== null && !isActive;
 
   return (
-    <a href={entry.url} className={cn('overflow-hidden rounded-xl cursor-pointer flex-shrink-0 transition-opacity duration-400 block', className, isDimmed ? 'opacity-60' : 'opacity-100')} onMouseEnter={() => onHover(entry.id)} onMouseLeave={() => onHover(null)}>
+    <Link to={entry.url} className={cn('overflow-hidden rounded-xl cursor-pointer flex-shrink-0 transition-opacity duration-400 block', className, isDimmed ? 'opacity-60' : 'opacity-100')} onMouseEnter={() => onHover(entry.id)} onMouseLeave={() => onHover(null)}>
       <img src={entry.image} alt={entry.date} className="w-full h-full object-cover transition-[filter] duration-500" style={{ filter: isActive ? 'grayscale(0) brightness(1)' : 'grayscale(1) brightness(0.77)' }} />
-    </a>
+    </Link>
   );
 }
 
@@ -57,13 +52,13 @@ function EntryRow({ entry, hoveredId, onHover }: { entry: PixelEntry; hoveredId:
   const isDimmed = hoveredId !== null && !isActive;
 
   return (
-    <a href={entry.url} className={cn('cursor-pointer transition-opacity duration-300 block', isDimmed ? 'opacity-50' : 'opacity-100')} onMouseEnter={() => onHover(entry.id)} onMouseLeave={() => onHover(null)}>
+    <Link to={entry.url} className={cn('cursor-pointer transition-opacity duration-300 block', isDimmed ? 'opacity-50' : 'opacity-100')} onMouseEnter={() => onHover(entry.id)} onMouseLeave={() => onHover(null)}>
       <div className="flex items-center gap-2.5">
         <span className={cn('w-4 h-3 rounded-[5px] flex-shrink-0 transition-all duration-300', isActive ? 'bg-foreground w-5' : 'bg-foreground/25')} />
         <span className={cn('text-base md:text-[18px] font-semibold leading-none tracking-tight transition-colors duration-300', isActive ? 'text-foreground' : 'text-foreground/80')}>
           {entry.date}
         </span>
       </div>
-    </a>
+    </Link>
   );
 }
