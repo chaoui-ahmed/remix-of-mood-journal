@@ -57,8 +57,7 @@ export default function Entry() {
       mood_score: moodScore,
       hashtags,
       date,
-      google_photos_ids: photoIds,
-      photo_url: photoIds.length > 0 ? photoIds[0] : null
+      google_photos_ids: photoIds
     };
 
     try {
@@ -71,11 +70,11 @@ export default function Entry() {
       if (moodScore === 1) {
         setShowSpecialPopup(true);
       } else {
-        toast({ title: "Succès", description: "Pixel enregistré avec succès !" });
+        toast({ title: "Succès", description: "Pixel enregistré !" });
         navigate("/");
       }
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message || "Impossible de sauvegarder l'entrée.", variant: "destructive" });
+      toast({ title: "Erreur", description: error.message || "Erreur de sauvegarde", variant: "destructive" });
     }
   };
 

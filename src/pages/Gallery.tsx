@@ -9,10 +9,10 @@ export default function GalleryPage() {
 
     if (isLoading) return <div className="flex h-screen items-center justify-center">Chargement...</div>;
 
-    const pixels = entries?.filter(e => e.photo_url).map(e => ({
+    const pixels = entries?.filter(e => e.google_photos_ids && e.google_photos_ids.length > 0).map(e => ({
         id: e.id,
-        date: format(new Date(e.created_at), "d MMMM yyyy", { locale: fr }),
-        image: e.photo_url,
+        date: format(new Date(e.date), "d MMMM yyyy", { locale: fr }),
+        image: e.google_photos_ids[0],
         url: `/entry/${e.id}`
     })) || [];
 
