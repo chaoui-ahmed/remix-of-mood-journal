@@ -95,8 +95,8 @@ const App = () => {
           <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/gallery" element={<ProtectedRoute><Gallery /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/" />} />
           <Route path="/22" element={<HeartWallpaper />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
