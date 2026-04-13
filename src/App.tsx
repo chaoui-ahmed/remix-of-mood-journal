@@ -2,20 +2,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-// Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Entry from "./pages/Entry";
 import Trends from "./pages/Trends";
 import Settings from "./pages/Settings";
-
-// Composant pour gérer la couleur de fond dynamique
+import BirthdayEffect from "./components/ui/birthday-effect";
+import PhotoGallery from "./components/ui/photo-gallery";
 import { ThemeLoader } from "@/components/layout/ThemeLoader";
 
 const queryClient = new QueryClient();
 
-// Composant de protection (redirige vers /auth si pas connecté)
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +52,6 @@ const App = () => {
       const hours = now.getHours();
       const minutes = now.getMinutes();
 
-      // Se déclenche si l'heure est égale aux minutes (ex: 10:10, 11:11, 22:22)
       if (hours === minutes) {
         setShowEffects(true);
       } else {
@@ -69,8 +65,8 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeLoader />
-      
-      {/* EFFET : Lumière Arc-en-ciel subtile (Arrière-plan : z-index -1) */}
+      <BirthdayEffect />
+
       {showEffects && (
         <div className="subtle-rainbow-bg">
           <div className="h"></div>
@@ -81,7 +77,6 @@ const App = () => {
         </div>
       )}
 
-      {/* EFFET : Pluie d'étoiles filantes noires (Premier plan : z-index 9999) */}
       {showEffects && (
         <div className="shooting-stars-wrapper">
           {[...Array(10)].map((_, i) => (
@@ -89,19 +84,16 @@ const App = () => {
           ))}
         </div>
       )}
-      
+
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          
-          {/* Routes Protégées */}
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/entry" element={<ProtectedRoute><Entry /></ProtectedRoute>} />
           <Route path="/entry/:id" element={<ProtectedRoute><Entry /></ProtectedRoute>} />
           <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          
-          {/* Redirection par défaut */}
+          <Route path="/gallery" element={<ProtectedRoute><div className="min-h-screen bg-black w-full"><PhotoGallery /></div></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
